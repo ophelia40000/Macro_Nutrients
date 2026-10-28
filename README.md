@@ -1,6 +1,7 @@
-# flutter_application_1
+# Macro_Nutrients
+Healthy App
 
-A new Flutter project.
+A new Flutter project for tracking macronutrients and healthy lifestyle.
 
 ## Getting Started
 
