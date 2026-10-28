@@ -1,0 +1,24 @@
+<div id="view-exercise" class="view">
+    <header class="app-header diary-header">
+        <div style="display: flex; align-items: center; gap: 4px;">
+
+            <h1 class="app-title" style="font-size: 20px;">Exercise Tracker</h1>
+        </div>
+    </header>
+
+    <main class="content-scrollable">
+        <h3 class="section-title">My Exercises</h3>
+        <div id="workout-list">
+            <div id="workout-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 40vh; opacity: 0.3; margin-top: 20px;">
+                <i data-lucide="dumbbell" style="width: 64px; height: 64px; margin-bottom: 16px;"></i>
+                <p style="text-align: center; font-size: 16px;">No exercises tracked yet.<br>Tap + to log your first workout!</p>
+            </div>
+            <!-- Dynamic exercise items will appear here -->
+        </div>
+    </main>
+
+    <button class="fab" id="fab-add-workout">
+        <i data-lucide="plus"></i>
+        <span>Add Workout</span>
+    </button>
+</div>

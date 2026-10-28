@@ -1,0 +1,115 @@
+<div id="view-dashboard" class="view active">
+    <!-- Header -->
+    <header class="app-header">
+        <h1 class="app-title">Macro Journey</h1>
+        <button class="profile-btn" id="btn-profile">
+            <i data-lucide="user"></i>
+        </button>
+    </header>
+
+    <main class="content-scrollable">
+        <!-- Calories Remaining Card -->
+        <div class="nutrient-card full-width cal-card" id="card-calories">
+            <div class="card-header">
+                <div class="icon-wrapper"><i data-lucide="flame"></i></div>
+                <span class="card-title">Calories Remaining</span>
+            </div>
+            <div class="card-body">
+                <div class="value-wrapper">
+                    <span class="value" id="val-calories">0</span>
+                    <span class="unit">kcal</span>
+                </div>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar" id="prog-calories"></div>
+            </div>
+        </div>
+
+        <!-- Two Column Cards (Carbs & Protein) -->
+        <div class="card-row">
+            <div class="nutrient-card carb-card" id="card-carbs">
+                <div class="card-header">
+                    <div class="icon-wrapper"><i data-lucide="croissant"></i></div>
+                    <span class="card-title">Carbs</span>
+                </div>
+                <div class="card-body">
+                    <div class="value-wrapper">
+                        <span class="value" id="val-carbs">0</span>
+                        <span class="unit">g</span>
+                    </div>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="prog-carbs"></div>
+                </div>
+            </div>
+
+            <div class="nutrient-card prot-card" id="card-protein">
+                <div class="card-header">
+                    <div class="icon-wrapper"><i data-lucide="drumstick"></i></div>
+                    <span class="card-title">Protein</span>
+                </div>
+                <div class="card-body">
+                    <div class="value-wrapper">
+                        <span class="value" id="val-protein">0</span>
+                        <span class="unit">g</span>
+                    </div>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar" id="prog-protein"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Healthy Fats Card -->
+        <div class="nutrient-card full-width fat-card" id="card-fats">
+            <div class="card-header">
+                <div class="icon-wrapper"><i data-lucide="droplet"></i></div>
+                <span class="card-title">Healthy Fats</span>
+            </div>
+            <div class="card-body">
+                <div class="value-wrapper">
+                    <span class="value" id="val-fats">0</span>
+                    <span class="unit">g</span>
+                </div>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar" id="prog-fats"></div>
+            </div>
+        </div>
+
+        <!-- Exercise Burned Card -->
+        <div class="nutrient-card full-width burn-card" id="card-burned">
+            <div class="card-header">
+                <div class="icon-wrapper"><i data-lucide="activity"></i></div>
+                <span class="card-title">Exercise Burned</span>
+            </div>
+            <div class="card-body">
+                <div class="value-wrapper">
+                    <span class="value" id="val-burned" style="color: #000;">0</span>
+                    <span class="unit" style="color: rgba(0,0,0,0.7);">kcal</span>
+                </div>
+            </div>
+            <div class="progress-bar-bg" style="background: rgba(0,0,0,0.1);">
+                <div class="progress-bar" id="prog-burned" style="background: #000;"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Action Button with Radial Menu -->
+    <div class="fab-container">
+        <div class="radial-menu" id="radial-menu">
+            <!-- Top Left: Camera -->
+            <button class="mini-fab" id="radial-camera" style="--angle: -45deg;" title="Camera">
+                <i data-lucide="camera"></i>
+            </button>
+            <!-- Top: Exercise -->
+            <button class="mini-fab" id="radial-exercise" style="--angle: -90deg;" title="Exercise">
+                <i data-lucide="activity"></i>
+            </button>
+        </div>
+        <button class="fab" id="fab-adjust">
+            <i data-lucide="settings-2"></i>
+            <span>Adjust Goals</span>
+        </button>
+    </div>
+</div>

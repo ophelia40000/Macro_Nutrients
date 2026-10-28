@@ -1,0 +1,25 @@
+        <div id="view-camera" class="view">
+            <!-- Header -->
+            <header class="app-header diary-header">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <h1 class="app-title" style="font-size: 20px;">Progress Journey</h1>
+                </div>
+            </header>
+
+            <main class="content-scrollable" id="camera-gallery-container" style="gap: 0; padding-top: 90px;">
+                <!-- Empty State -->
+                <div id="camera-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; opacity: 0.3;">
+                    <i data-lucide="image" style="width: 64px; height: 64px; margin-bottom: 16px;"></i>
+                    <p style="text-align: center; font-size: 16px;">No progress photos yet.<br>Tap the camera to start!</p>
+                </div>
+
+                <!-- Gallery will be populated here -->
+                <div id="camera-gallery-list" style="padding-bottom: 50px;"></div>
+            </main>
+
+            <input type="file" id="input-camera-file" accept="image/*" capture="environment" style="display: none;">
+            
+            <button class="fab" id="fab-take-photo" style="background: var(--primary-green);">
+                <i data-lucide="camera" style="color: black;"></i>
+            </button>
+        </div>

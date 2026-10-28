@@ -1,0 +1,27 @@
+<div class="bottom-sheet-overlay" id="exercise-sets-modal">
+    <div class="bottom-sheet">
+        <div class="drag-handle"></div>
+        <h2 id="modal-sets-title">Exercise Name</h2>
+        <p id="modal-sets-subtitle" style="color: var(--text-dim); margin-bottom: 16px;">Log your sets and reps.</p>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+            <i data-lucide="scale"></i>
+            <input type="number" id="global-set-weight" placeholder="Weight for all sets (kg)">
+        </div>
+        
+        <div style="display: flex; gap: 8px; padding-bottom: 10px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-dim); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+            <div style="width: 50px;"></div>
+            <div style="flex: 1; text-align: center;">Reps</div>
+            <div style="width: 40px;"></div>
+        </div>
+
+        <div id="sets-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 40vh; overflow-y: auto; overflow-x: hidden;">
+            <!-- Sets will be injected here -->
+        </div>
+
+        <button class="btn-secondary" id="btn-add-set" style="margin-bottom: 4px;">
+            <i data-lucide="plus"></i> Add Set
+        </button>
+        <button class="btn-primary" id="btn-save-sets">Save Sets</button>
+    </div>
+</div>

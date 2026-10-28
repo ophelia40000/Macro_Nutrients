@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nutrition Tracker</title>
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- PWA / iPhone Add to Home Screen -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#BBF246">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Macro Journey">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon_app.png">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.0.7">
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        
+        <!-- Views -->
+        <div id="view-dashboard-container"></div>
+        <div id="view-diary-container"></div>
+        <div id="view-camera-container"></div>
+        <div id="view-exercise-container"></div>
+        <div id="view-profile-container"></div>
+        
+        <!-- Modals -->
+        <div id="modal-login-container"></div>
+        <div id="modal-adjust-goals-container"></div>
+        <div id="modal-burn-container"></div>
+        <div id="modal-add-entry-container"></div>
+        <div id="modal-fullscreen-container"></div>
+        <div id="modal-presets-container"></div>
+        <div id="modal-edit-preset-container"></div>
+        <div id="modal-add-workout-container"></div>
+        <div id="modal-exercise-sets-container"></div>
+    </div>
+
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-storage-compat.js"></script>
+
+    <!-- Component Loader -->
+    <script>
+        const version = '2.0.27';
+        const components = [
+            { id: 'view-dashboard-container', url: 'components/views/dashboard.html' },
+            { id: 'view-diary-container', url: 'components/views/diary.html' },
+            { id: 'view-camera-container', url: 'components/views/camera.html' },
+            { id: 'view-profile-container', url: 'components/views/profile.html' },
+            { id: 'modal-login-container', url: 'components/modals/login.html' },
+            { id: 'modal-adjust-goals-container', url: 'components/modals/adjust_goals.html' },
+            { id: 'modal-burn-container', url: 'components/modals/burn.html' },
+            { id: 'modal-add-entry-container', url: 'components/modals/add_entry.html' },
+            { id: 'modal-fullscreen-container', url: 'components/modals/fullscreen.html' },
+            { id: 'modal-presets-container', url: 'components/modals/presets.html' },
+            { id: 'modal-edit-preset-container', url: 'components/modals/edit_preset.html' },
+            { id: 'view-exercise-container', url: 'components/views/exercise.html' },
+            { id: 'modal-add-workout-container', url: 'components/modals/add_workout.html' },
+            { id: 'modal-exercise-sets-container', url: 'components/modals/exercise_sets.html' }
+        ];
+
+        Promise.all(components.map(comp => 
+            fetch(comp.url + '?v=' + version).then(res => res.text()).then(html => {
+                document.getElementById(comp.id).innerHTML = html;
+            })
+        )).then(() => {
+            // Load main app logic
+            const script = document.createElement('script');
+            script.src = 'js/app.js?v=' + version;
+            document.body.appendChild(script);
+        }).catch(err => {
+            console.error("Failed to load components", err);
+            alert("Gagal memuat komponen aplikasi. Coba muat ulang halaman.");
+        });
+    </script>
+</body>
+</html>

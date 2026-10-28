@@ -1,0 +1,63 @@
+        <div id="view-diary" class="view">
+            <!-- Header -->
+            <header class="app-header diary-header">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <button class="appbar-btn" id="btn-back-dashboard">
+                        <i data-lucide="arrow-left"></i>
+                    </button>
+                    <h1 class="app-title" style="font-size: 20px;">Nutrition Diary</h1>
+                </div>
+                <button class="appbar-btn" id="btn-manage-presets">
+                    <i data-lucide="settings"></i>
+                </button>
+            </header>
+
+            <main class="content-scrollable">
+                <!-- Macro Header -->
+                <div class="macro-header">
+                    <div class="macro-progress">
+                        <div class="macro-label">
+                            <span>Calories</span>
+                            <span id="diary-cal-text">0/2000 kcal</span>
+                        </div>
+                        <div class="progress-bar-bg"><div class="progress-bar" id="diary-cal-prog"></div></div>
+                    </div>
+                    
+                    <div class="macro-row">
+                        <div class="macro-progress compact">
+                            <div class="macro-label">
+                                <span>Protein</span>
+                                <span id="diary-prot-text">0/150 g</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar" id="diary-prot-prog"></div></div>
+                        </div>
+                        <div class="macro-progress compact">
+                            <div class="macro-label">
+                                <span>Carbs</span>
+                                <span id="diary-carb-text">0/250 g</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar" id="diary-carb-prog"></div></div>
+                        </div>
+                        <div class="macro-progress compact">
+                            <div class="macro-label">
+                                <span>Fat</span>
+                                <span id="diary-fat-text">0/70 g</span>
+                            </div>
+                            <div class="progress-bar-bg"><div class="progress-bar" id="diary-fat-prog"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Log List -->
+                <h3 class="section-title">Food Log</h3>
+                <div id="food-log-list" class="food-log-list">
+                    <!-- Dynamic Entries will appear here -->
+                </div>
+            </main>
+
+            <!-- Floating Action Button -->
+            <button class="fab" id="fab-add-entry">
+                <i data-lucide="shopping-cart"></i>
+                <span>Log Food</span>
+            </button>
+        </div>

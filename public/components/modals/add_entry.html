@@ -1,0 +1,58 @@
+        <div class="dialog-overlay" id="add-entry-modal">
+            <div class="dialog-box">
+                <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 15px; color: white;">Add Nutrition Entry</h2>
+                
+                <div class="tabs">
+                    <button class="tab-btn active" id="tab-preset"><i data-lucide="list"></i> Preset</button>
+                    <button class="tab-btn" id="tab-manual"><i data-lucide="edit-3"></i> Manual</button>
+                </div>
+
+                <div id="form-manual" class="tab-content" style="display: none;">
+                    <div class="input-group">
+                        <i data-lucide="type"></i>
+                        <input type="text" id="input-entry-name" placeholder="Food Name">
+                    </div>
+                    <div class="input-group">
+                        <i data-lucide="flame"></i>
+                        <input type="number" id="input-entry-cal" placeholder="Calories (kcal)">
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <i data-lucide="drumstick"></i>
+                            <input type="number" id="input-entry-prot" placeholder="Protein (g)">
+                        </div>
+                        <div class="input-group">
+                            <i data-lucide="croissant"></i>
+                            <input type="number" id="input-entry-carbs" placeholder="Carbs (g)">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <i data-lucide="droplet"></i>
+                        <input type="number" id="input-entry-fat" placeholder="Fat (g)">
+                    </div>
+                </div>
+
+                <div id="form-preset" class="tab-content">
+                    <div class="input-group" style="position: relative; z-index: 50;">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="input-preset-search" placeholder="Search Food" autocomplete="off">
+                        <div id="autocomplete-list" class="autocomplete-items"></div>
+                    </div>
+                    <div class="input-group">
+                        <i data-lucide="scale"></i>
+                        <input type="number" id="input-entry-weight" placeholder="Weight (grams)">
+                    </div>
+                    
+                    <div class="preview-box">
+                        <div class="preview-title"><i data-lucide="bar-chart-2" style="width:16px;height:16px;"></i> Selection Preview</div>
+                        <div class="preview-row"><span>Calories</span> <span id="preview-cal">0.0 kcal</span></div>
+                        <div class="preview-row"><span>Macros</span> <span id="preview-macros">P: 0.0g | C: 0.0g | F: 0.0g</span></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end;">
+                    <button id="btn-cancel-entry" style="background: transparent; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer;">Cancel</button>
+                    <button class="btn-primary" id="btn-save-entry" style="margin-top: 0; height: 44px; padding: 0 20px;">Add Entry</button>
+                </div>
+            </div>
+        </div>

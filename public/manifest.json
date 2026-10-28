@@ -1,0 +1,15 @@
+{
+  "name": "Macro Journey",
+  "short_name": "Macro",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F0F0F",
+  "theme_color": "#BBF246",
+  "icons": [
+    {
+      "src": "/icons/icon_app.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}

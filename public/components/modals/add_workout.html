@@ -1,0 +1,20 @@
+<div class="bottom-sheet-overlay" id="add-workout-modal">
+    <div class="bottom-sheet">
+        <div class="drag-handle"></div>
+        <h2 id="modal-workout-title">New Exercise</h2>
+        <p id="modal-workout-subtitle">Create a new exercise category.</p>
+        
+        <div class="input-group" id="group-workout-region">
+            <i data-lucide="folder"></i>
+            <input type="text" id="input-workout-region" placeholder="Region (e.g. Back Day, Chest)" autocomplete="off" list="region-options">
+            <datalist id="region-options"></datalist>
+        </div>
+        
+        <div class="input-group" id="group-workout-name">
+            <i data-lucide="activity"></i>
+            <input type="text" id="input-workout-name" placeholder="Exercise Name (e.g. Tricep Push Down)" autocomplete="off">
+        </div>
+        
+        <button class="btn-primary" id="btn-save-workout">Continue</button>
+    </div>
+</div>

@@ -1,0 +1,19 @@
+        <div class="dialog-overlay" id="fullscreen-modal" style="background: rgba(0,0,0,0.95); backdrop-filter: blur(10px);">
+            <button class="icon-btn" id="btn-close-fullscreen" style="position: absolute; top: 30px; left: 20px; z-index: 101;">
+                <i data-lucide="x"></i>
+            </button>
+            <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px;">
+                <img id="fullscreen-image" src="" style="max-width: 100%; max-height: 70vh; border-radius: 20px; object-fit: contain; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+                
+                <div style="margin-top: 30px; width: 100%; max-width: 400px;">
+                    <h2 id="fullscreen-date" style="font-size: 22px; font-weight: 700;">--</h2>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                        <i data-lucide="activity" style="color: var(--accent-lime); width: 16px; height: 16px;"></i>
+                        <span id="fullscreen-weight" style="color: var(--accent-lime); font-size: 16px; font-weight: 900;">-- kg</span>
+                    </div>
+                    <button id="btn-delete-photo" style="margin-top: 20px; width: 100%; background: rgba(255,50,50,0.1); border: 1px solid rgba(255,50,50,0.3); color: #ff5252; padding: 12px; border-radius: 15px; font-weight: bold; cursor: pointer;">
+                        <i data-lucide="trash-2" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;"></i> Delete Photo
+                    </button>
+                </div>
+            </div>
+        </div>

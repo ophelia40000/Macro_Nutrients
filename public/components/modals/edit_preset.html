@@ -1,0 +1,32 @@
+        <div class="bottom-sheet-overlay" id="edit-preset-modal">
+            <div class="bottom-sheet" style="z-index: 101;">
+                <div class="drag-handle"></div>
+                <h2 id="edit-preset-title">New Preset</h2>
+                <input type="hidden" id="input-preset-index">
+                
+                <div class="input-group">
+                    <i data-lucide="type"></i>
+                    <input type="text" id="input-preset-name" placeholder="Preset Name">
+                </div>
+                <div class="input-group">
+                    <i data-lucide="flame"></i>
+                    <input type="number" id="input-preset-cal" placeholder="Calories (per 100g)">
+                </div>
+                <div class="input-row">
+                    <div class="input-group">
+                        <i data-lucide="drumstick"></i>
+                        <input type="number" id="input-preset-prot" placeholder="Protein (per 100g)">
+                    </div>
+                    <div class="input-group">
+                        <i data-lucide="croissant"></i>
+                        <input type="number" id="input-preset-carbs" placeholder="Carbs (per 100g)">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <i data-lucide="droplet"></i>
+                    <input type="number" id="input-preset-fat" placeholder="Fat (per 100g)">
+                </div>
+
+                <button class="btn-primary" id="btn-save-preset">Save Preset</button>
+            </div>
+        </div>
