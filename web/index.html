@@ -1,46 +1,983 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Macro Journey — Clinical Precision Energy Telemetry</title>
+  
+  <!-- DM Sans font per DESIGN.md specification -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..900;1,9..40,400..900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Colors strictly mapped from DESIGN.md */
+      --color-canopy-green: #0a3922;
+      --color-coral-pulse: #c43315; /* High-contrast coral reaching WCAG AA 4.5:1 with white */
+      --color-coral-bright: #ff643b;
+      --color-indigo-bloom: #460095;
+      --color-leaf-bright: #1dbf73;
+      --color-deep-teal: #003642;
+      --color-orchid-tint: #f3b3fe;
+      --color-sky-signal: #008cb0;
+      --color-aubergine: #47264c;
+      --color-ink-black: #000000;
+      --color-paper-white: #ffffff;
+      --color-ash: #a6a6a6;
+      --color-slate: #47264c; /* Replaced with Aubergine for >5:1 contrast on lavender */
+      --color-graphite: #262626; /* Enhanced dark graphite for contrast */
+      --color-charcoal: #1f1f1f;
+      --color-frost-gray: #e0e0e0;
+      --color-lavender-mist: #eee2ff;
+      --color-mint-wash: #d2f2e3;
+      --color-sky-wash: #ccf0f8;
+      --color-sage-wash: #e4f7ee;
+      --color-lilac-wash: #fdf0ff;
+      --color-peach-wash: #ffede8;
+      --color-cream: #faf7e8;
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="flutter_application_1">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+      /* Shapes */
+      --radius-card: 24px;
+      --radius-button: 40px;
+      --radius-card-sm: 16px;
+      --radius-tag: 9999px;
+      
+      /* Typography */
+      --font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-  <title>flutter_application_1</title>
-  <link rel="manifest" href="manifest.json">
+    body {
+      background-color: var(--color-lavender-mist);
+      font-family: var(--font-family);
+      color: var(--color-ink-black);
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.45;
+      font-feature-settings: "ss03";
+    }
+
+    /* Tabular numbers for clean numeric alignment */
+    .numeral {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Top Sticky Navigation Bar per DESIGN.md */
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background-color: var(--color-paper-white);
+      border-bottom: 1px solid var(--color-frost-gray);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--color-canopy-green);
+      letter-spacing: -0.5px;
+    }
+
+    .pill-tag-chip {
+      background-color: var(--color-mint-wash);
+      color: var(--color-canopy-green);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: var(--radius-tag);
+    }
+
+    .nav-outline-btn {
+      background-color: var(--color-paper-white);
+      color: var(--color-canopy-green);
+      border: 1px solid var(--color-canopy-green);
+      border-radius: var(--radius-button);
+      padding: 10px 22px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.15s ease;
+    }
+
+    .nav-outline-btn:hover {
+      background-color: var(--color-mint-wash);
+    }
+
+    /* Container */
+    .main-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 36px 20px 64px 20px;
+    }
+
+    /* Hero Section Opener */
+    .hero-header {
+      padding: 16px 0 32px 0;
+    }
+
+    .hero-display-title {
+      font-size: clamp(34px, 5.5vw, 54px);
+      font-weight: 800;
+      color: var(--color-canopy-green);
+      line-height: 1.1;
+      letter-spacing: -0.028em;
+      margin-bottom: 16px;
+    }
+
+    .hero-body-text {
+      font-size: 16px;
+      color: var(--color-graphite);
+      max-width: 680px;
+      line-height: 1.55;
+    }
+
+    /* 5 CARDS IN PASTEL ROOM SYSTEM */
+    .card-deck {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Card 1: Dominant Canopy Green Hero Card */
+    .hero-cal-card {
+      background-color: var(--color-canopy-green);
+      border-radius: var(--radius-card);
+      padding: 32px;
+      color: var(--color-paper-white);
+    }
+
+    .cal-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .card-title-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--color-paper-white);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.015em;
+    }
+
+    .status-pill {
+      padding: 6px 14px;
+      border-radius: var(--radius-tag);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-deficit {
+      background: rgba(255, 255, 255, 0.16);
+      color: var(--color-paper-white);
+      border: 1px solid var(--color-leaf-bright);
+    }
+
+    .status-surplus {
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffe6e0;
+      border: 1px solid var(--color-coral-pulse);
+    }
+
+    .calorie-readout {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .big-numeral {
+      font-size: clamp(52px, 8vw, 76px);
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      line-height: 1;
+      color: var(--color-paper-white);
+    }
+
+    .numeral-unit {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--color-mint-wash);
+    }
+
+    .progress-track-hero {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .progress-fill-hero {
+      height: 100%;
+      background-color: var(--color-leaf-bright);
+      border-radius: 8px;
+      transition: width 0.25s ease;
+    }
+
+    .formula-dock {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: var(--radius-card-sm);
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .formula-segment {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .formula-sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: rgba(255, 255, 255, 0.78);
+      font-weight: 600;
+    }
+
+    .formula-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--color-paper-white);
+    }
+
+    .formula-sign {
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 700;
+    }
+
+    /* 2-Column Pastel Grid */
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .two-col-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pastel-card {
+      border-radius: var(--radius-card);
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-mint {
+      background-color: var(--color-mint-wash);
+    }
+
+    .card-sky {
+      background-color: var(--color-sky-wash);
+    }
+
+    .card-cream {
+      background-color: var(--color-cream);
+    }
+
+    .card-peach {
+      background-color: var(--color-peach-wash);
+    }
+
+    .card-title-mint {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--color-canopy-green);
+      letter-spacing: -0.015em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title-sky {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--color-deep-teal);
+      letter-spacing: -0.015em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title-cream {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--color-charcoal);
+      letter-spacing: -0.015em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .macro-numeral-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .macro-big-num {
+      font-size: 38px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.025em;
+    }
+
+    .macro-target-text {
+      font-size: 15px;
+      color: var(--color-graphite);
+      font-weight: 600;
+    }
+
+    .pastel-progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .pastel-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.25s ease;
+    }
+
+    .macro-meta-note {
+      font-size: 13px;
+      color: var(--color-graphite);
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    /* Stepper Controls */
+    .stepper-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: var(--radius-button);
+      padding: 4px;
+    }
+
+    .stepper-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-button);
+      background-color: var(--color-paper-white);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--color-charcoal);
+      transition: transform 0.1s ease, background 0.15s;
+    }
+
+    .stepper-btn:active {
+      transform: scale(0.94);
+      background-color: var(--color-frost-gray);
+    }
+
+    .stepper-delta-label {
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    /* Wide Cards */
+    .card-top-spread {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .wide-split-body {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .burn-hero-numeral {
+      color: var(--color-coral-pulse);
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+    }
+
+    .preset-chips-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .preset-chip-btn {
+      min-height: 48px;
+      background-color: var(--color-paper-white);
+      color: var(--color-charcoal);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      padding: 10px 20px;
+      border-radius: var(--radius-button);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .preset-chip-btn.active {
+      background-color: var(--color-coral-pulse);
+      color: var(--color-paper-white);
+      border-color: var(--color-coral-pulse);
+    }
+
+    /* White Product Card: Macro Distribution */
+    .white-product-card {
+      background-color: var(--color-paper-white);
+      border-radius: var(--radius-card);
+      padding: 26px;
+      margin-top: 10px;
+    }
+
+    .white-card-heading {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--color-canopy-green);
+      letter-spacing: -0.015em;
+    }
+
+    .reset-link-btn {
+      background: none;
+      border: none;
+      color: var(--color-coral-pulse);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .segmented-ratio-bar {
+      display: flex;
+      height: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    .ratio-segment {
+      height: 100%;
+      transition: width 0.25s ease;
+    }
+
+    .ratio-legend-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-graphite);
+    }
+
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 5px;
+    }
+
+    /* CTA Section: Coral Pulse + Ghost Outline per DESIGN.md */
+    .cta-deck {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .cta-button-pair {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      max-width: 520px;
+      flex-wrap: wrap;
+    }
+
+    .coral-filled-cta {
+      flex: 1;
+      min-width: 220px;
+      min-height: 54px;
+      background-color: var(--color-coral-pulse);
+      color: var(--color-paper-white);
+      border: none;
+      border-radius: var(--radius-button);
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: opacity 0.15s ease;
+    }
+
+    .coral-filled-cta:hover {
+      opacity: 0.92;
+    }
+
+    .ghost-outline-cta {
+      flex: 1;
+      min-width: 180px;
+      min-height: 54px;
+      background-color: transparent;
+      color: var(--color-canopy-green);
+      border: 2px solid var(--color-canopy-green);
+      border-radius: var(--radius-button);
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s ease;
+    }
+
+    .ghost-outline-cta:hover {
+      background-color: rgba(10, 57, 34, 0.08);
+    }
+
+    .trust-badges-row {
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-slate);
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- Sticky Top Navigation -->
+  <nav class="nav-bar">
+    <div class="brand-group">
+      <div class="brand-title">Macro Journey</div>
+      <div class="pill-tag-chip">Daily Telemetry</div>
+    </div>
+    <a href="#" class="nav-outline-btn" id="navOpenBtn">
+      Open Tracker &rarr;
+    </a>
+  </nav>
+
+  <main class="main-container">
+    <!-- Hero Header -->
+    <header class="hero-header">
+      <h1 class="hero-display-title">Energy balance, measured with clinic precision.</h1>
+      <p class="hero-body-text">
+        Every calorie, macro gram, and training expenditure working in unison. Adjust any
+        number below to observe live telemetry recalculation across all five rooms.
+      </p>
+    </header>
+
+    <!-- 5 Cards in Pastel Room System -->
+    <div class="card-deck">
+      
+      <!-- CARD 1: Full-Bleed Dark Canopy Green Hero Card -->
+      <section class="hero-cal-card">
+        <div class="cal-header-row">
+          <h2 class="card-title-text" id="calorieCardTitle">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+            </svg>
+            Net Energy Remaining
+          </h2>
+          <div class="status-pill status-deficit" id="deficitBadge">Deficit: 450 kcal</div>
+        </div>
+
+        <div class="calorie-readout">
+          <span class="big-numeral numeral" id="remainingCalSpan">450</span>
+          <span class="numeral-unit">kcal remaining</span>
+        </div>
+
+        <div class="progress-track-hero">
+          <div class="progress-fill-hero" id="calProgressBar" style="width: 83%;"></div>
+        </div>
+
+        <div class="formula-dock">
+          <div class="formula-segment">
+            <span class="formula-sub">Target</span>
+            <span class="formula-val numeral" id="targetCalSpan">2,250</span>
+          </div>
+          <span class="formula-sign">&minus;</span>
+          <div class="formula-segment">
+            <span class="formula-sub">Consumed</span>
+            <span class="formula-val numeral" id="consumedCalSpan">1,890</span>
+          </div>
+          <span class="formula-sign">+</span>
+          <div class="formula-segment">
+            <span class="formula-sub">Workout</span>
+            <span class="formula-val numeral" id="workoutBurnSpan" style="color: var(--color-leaf-bright);">+450</span>
+          </div>
+          <span class="formula-sign">=</span>
+          <div class="formula-segment">
+            <span class="formula-sub">Net Budget</span>
+            <span class="formula-val numeral" id="netBudgetSpan">2,700</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2-Column Pastel Deck (Cards 2 & 3) -->
+      <div class="two-col-grid">
+        
+        <!-- CARD 2: Mint Wash Pastel Card (Protein) -->
+        <article class="pastel-card card-mint">
+          <div>
+            <h3 class="card-title-mint">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2a4 4 0 0 1 4 4c0 1.5-.8 2.8-2 3.5V11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9.5C4.8 8.8 4 7.5 4 6a4 4 0 0 1 4-4h4z"/>
+                <path d="M10 13v8"/>
+                <path d="M7 21h6"/>
+              </svg>
+              Protein
+            </h3>
+
+            <div class="macro-numeral-row">
+              <span class="macro-big-num numeral" id="proteinGramSpan" style="color: var(--color-canopy-green);">155</span>
+              <span class="macro-target-text">/ 170g target</span>
+            </div>
+
+            <div class="pastel-progress-bar">
+              <div class="pastel-fill" id="proteinBar" style="width: 91%; background-color: var(--color-canopy-green);"></div>
+            </div>
+
+            <p class="macro-meta-note" id="proteinMeta">620 kcal &bull; 33% of diet</p>
+          </div>
+
+          <div class="stepper-pill">
+            <button class="stepper-btn" onclick="adjustProtein(-10)" aria-label="Decrease protein 10g">&minus;</button>
+            <span class="stepper-delta-label" style="color: var(--color-canopy-green);">&plusmn;10g</span>
+            <button class="stepper-btn" onclick="adjustProtein(10)" aria-label="Increase protein 10g">&plus;</button>
+          </div>
+        </article>
+
+        <!-- CARD 3: Sky Wash Pastel Card (Carbs) -->
+        <article class="pastel-card card-sky">
+          <div>
+            <h3 class="card-title-sky">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+              </svg>
+              Carbohydrates
+            </h3>
+
+            <div class="macro-numeral-row">
+              <span class="macro-big-num numeral" id="carbsGramSpan" style="color: var(--color-deep-teal);">210</span>
+              <span class="macro-target-text">/ 260g target</span>
+            </div>
+
+            <div class="pastel-progress-bar">
+              <div class="pastel-fill" id="carbsBar" style="width: 80%; background-color: var(--color-deep-teal);"></div>
+            </div>
+
+            <p class="macro-meta-note" id="carbsMeta">840 kcal &bull; 44% of diet</p>
+          </div>
+
+          <div class="stepper-pill">
+            <button class="stepper-btn" onclick="adjustCarbs(-15)" aria-label="Decrease carbs 15g">&minus;</button>
+            <span class="stepper-delta-label" style="color: var(--color-deep-teal);">&plusmn;15g</span>
+            <button class="stepper-btn" onclick="adjustCarbs(15)" aria-label="Increase carbs 15g">&plus;</button>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- CARD 4: Cream Pastel Card (Healthy Fats & Hormones) -->
+      <article class="pastel-card card-cream">
+        <div class="card-top-spread">
+          <h3 class="card-title-cream">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+            </svg>
+            Healthy Fats &amp; Hormones
+          </h3>
+          <span class="macro-target-text" id="fatMeta">432 kcal (23%)</span>
+        </div>
+
+        <div class="wide-split-body">
+          <div class="macro-numeral-row" style="margin-bottom: 0;">
+            <span class="macro-big-num numeral" id="fatGramSpan" style="color: var(--color-charcoal);">48</span>
+            <span class="macro-target-text">/ 60g target</span>
+          </div>
+
+          <div class="stepper-pill" style="width: 160px;">
+            <button class="stepper-btn" onclick="adjustFat(-5)" aria-label="Decrease fat 5g">&minus;</button>
+            <span class="stepper-delta-label" style="color: var(--color-graphite);">&plusmn;5g</span>
+            <button class="stepper-btn" onclick="adjustFat(5)" aria-label="Increase fat 5g">&plus;</button>
+          </div>
+        </div>
+
+        <div class="pastel-progress-bar">
+          <div class="pastel-fill" id="fatBar" style="width: 80%; background-color: var(--color-graphite);"></div>
+        </div>
+      </article>
+
+      <!-- CARD 5: Peach Wash Pastel Card (Exercise Energy Burned) -->
+      <article class="pastel-card card-peach">
+        <div class="card-top-spread">
+          <h3 class="card-title-cream">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/>
+            </svg>
+            Exercise Energy Burned
+          </h3>
+          <div class="pill-tag-chip" style="background: var(--color-paper-white); color: #8e1f06; border: 1px solid rgba(0, 0, 0, 0.08); font-weight: 800;">
+            Expands Ceiling
+          </div>
+        </div>
+
+        <div class="wide-split-body">
+          <div style="display: flex; align-items: baseline; gap: 8px;">
+            <span class="burn-hero-numeral numeral" id="burnLargeSpan">+450</span>
+            <span style="font-weight: 700; color: var(--color-graphite);">kcal active expenditure</span>
+          </div>
+
+          <div class="stepper-pill" style="width: 170px;">
+            <button class="stepper-btn" onclick="adjustBurn(-50)" aria-label="Decrease burn 50 kcal">&minus;</button>
+            <span class="stepper-delta-label" style="color: var(--color-coral-pulse);">&plusmn;50 kcal</span>
+            <button class="stepper-btn" onclick="adjustBurn(50)" aria-label="Increase burn 50 kcal">&plus;</button>
+          </div>
+        </div>
+
+        <div class="preset-chips-cluster">
+          <button class="preset-chip-btn" id="chip500" onclick="setPresetBurn(500)">Heavy Squats (500)</button>
+          <button class="preset-chip-btn active" id="chip450" onclick="setPresetBurn(450)">Hypertrophy (450)</button>
+          <button class="preset-chip-btn" id="chip200" onclick="setPresetBurn(200)">Conditioning (200)</button>
+        </div>
+      </article>
+
+      <!-- White Product Card: Macro Distribution -->
+      <section class="white-product-card">
+        <div class="card-top-spread">
+          <h4 class="white-card-heading">Macronutrient Distribution</h4>
+          <button class="reset-link-btn" onclick="resetBaseline()">Reset Baseline</button>
+        </div>
+        <div class="segmented-ratio-bar">
+          <div class="ratio-segment" id="segProt" style="width: 33%; background-color: var(--color-canopy-green);"></div>
+          <div class="ratio-segment" id="segCarb" style="width: 44%; background-color: var(--color-sky-signal);"></div>
+          <div class="ratio-segment" id="segFat" style="width: 23%; background-color: var(--color-coral-pulse);"></div>
+        </div>
+        <div class="ratio-legend-row">
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--color-canopy-green);"></div>
+            <span id="legProt">Protein 33%</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--color-sky-signal);"></div>
+            <span id="legCarb">Carbs 44%</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background: var(--color-coral-pulse);"></div>
+            <span id="legFat">Fats 23%</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- CTA Section -->
+    <section class="cta-deck">
+      <div class="cta-button-pair">
+        <button class="coral-filled-cta" onclick="alert('Launching Macro Journey...')">
+          Open Daily Tracker &rarr;
+        </button>
+        <button class="ghost-outline-cta" onclick="resetBaseline()">
+          Reset Baseline
+        </button>
+      </div>
+
+      <div class="trust-badges-row">
+        <span>&check; 100% On-Device Local Storage</span>
+        <span>&check; Zero Subscription Paywalls</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Interactive Telemetry Logic -->
+  <script>
+    const baseTarget = 2250;
+    const targetP = 170;
+    const targetC = 260;
+    const targetF = 60;
+
+    let p = 155;
+    let c = 210;
+    let f = 48;
+    let burn = 450;
+
+    function recalculate() {
+      const consumed = Math.round(p * 4 + c * 4 + f * 9);
+      const budget = baseTarget + burn;
+      const remaining = budget - consumed;
+      const isSurplus = remaining < 0;
+
+      // Card 1
+      document.getElementById('remainingCalSpan').textContent = Math.abs(remaining).toLocaleString();
+      document.getElementById('consumedCalSpan').textContent = consumed.toLocaleString();
+      document.getElementById('workoutBurnSpan').textContent = '+' + burn.toLocaleString();
+      document.getElementById('netBudgetSpan').textContent = budget.toLocaleString();
+
+      const calProg = Math.min(Math.max(consumed / budget, 0), 1) * 100;
+      const calBar = document.getElementById('calProgressBar');
+      calBar.style.width = isSurplus ? '100%' : calProg + '%';
+      calBar.style.backgroundColor = isSurplus ? 'var(--color-coral-pulse)' : 'var(--color-leaf-bright)';
+
+      const badge = document.getElementById('deficitBadge');
+      if (isSurplus) {
+        badge.className = 'status-pill status-surplus';
+        badge.textContent = 'Surplus: +' + Math.abs(remaining) + ' kcal';
+        document.getElementById('calorieCardTitle').innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Calorie Surplus Detected';
+      } else {
+        badge.className = 'status-pill status-deficit';
+        badge.textContent = 'Deficit: ' + remaining + ' kcal';
+        document.getElementById('calorieCardTitle').innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> Net Energy Remaining';
+      }
+
+      // Card 2: Protein
+      document.getElementById('proteinGramSpan').textContent = p;
+      const pProg = Math.min(Math.max(p / targetP, 0), 1) * 100;
+      document.getElementById('proteinBar').style.width = pProg + '%';
+
+      // Card 3: Carbs
+      document.getElementById('carbsGramSpan').textContent = c;
+      const cProg = Math.min(Math.max(c / targetC, 0), 1) * 100;
+      document.getElementById('carbsBar').style.width = cProg + '%';
+
+      // Card 4: Fat
+      document.getElementById('fatGramSpan').textContent = f;
+      const fProg = Math.min(Math.max(f / targetF, 0), 1) * 100;
+      document.getElementById('fatBar').style.width = fProg + '%';
+
+      // Card 5: Burn
+      document.getElementById('burnLargeSpan').textContent = '+' + burn;
+
+      // Ratios
+      const pCal = p * 4;
+      const cCal = c * 4;
+      const fCal = f * 9;
+      const totalMacroCal = Math.max(pCal + cCal + fCal, 1);
+      const pPct = Math.round((pCal / totalMacroCal) * 100);
+      const cPct = Math.round((cCal / totalMacroCal) * 100);
+      const fPct = Math.round((fCal / totalMacroCal) * 100);
+
+      document.getElementById('proteinMeta').textContent = pCal + ' kcal • ' + pPct + '% of diet';
+      document.getElementById('carbsMeta').textContent = cCal + ' kcal • ' + cPct + '% of diet';
+      document.getElementById('fatMeta').textContent = fCal + ' kcal (' + fPct + '%)';
+
+      document.getElementById('segProt').style.width = pPct + '%';
+      document.getElementById('segCarb').style.width = cPct + '%';
+      document.getElementById('segFat').style.width = fPct + '%';
+
+      document.getElementById('legProt').textContent = 'Protein ' + pPct + '%';
+      document.getElementById('legCarb').textContent = 'Carbs ' + cPct + '%';
+      document.getElementById('legFat').textContent = 'Fats ' + fPct + '%';
+    }
+
+    function adjustProtein(delta) {
+      p = Math.max(0, p + delta);
+      recalculate();
+    }
+
+    function adjustCarbs(delta) {
+      c = Math.max(0, c + delta);
+      recalculate();
+    }
+
+    function adjustFat(delta) {
+      f = Math.max(0, f + delta);
+      recalculate();
+    }
+
+    function adjustBurn(delta) {
+      burn = Math.max(0, burn + delta);
+      updatePresetChips();
+      recalculate();
+    }
+
+    function setPresetBurn(val) {
+      burn = val;
+      updatePresetChips();
+      recalculate();
+    }
+
+    function updatePresetChips() {
+      document.getElementById('chip500').className = (burn === 500) ? 'preset-chip-btn active' : 'preset-chip-btn';
+      document.getElementById('chip450').className = (burn === 450) ? 'preset-chip-btn active' : 'preset-chip-btn';
+      document.getElementById('chip200').className = (burn === 200) ? 'preset-chip-btn active' : 'preset-chip-btn';
+    }
+
+    function resetBaseline() {
+      p = 155;
+      c = 210;
+      f = 48;
+      burn = 450;
+      updatePresetChips();
+      recalculate();
+    }
+
+    // Initialize on load
+    recalculate();
+  </script>
 </body>
 </html>

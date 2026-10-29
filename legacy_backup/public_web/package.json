@@ -1,0 +1,13 @@
+{
+  "name": "flutter_web_server",
+  "version": "1.0.0",
+  "description": "Express server to serve Flutter Web App",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.2",
+    "firebase": "^12.19.0"
+  }
+}

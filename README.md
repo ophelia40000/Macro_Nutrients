@@ -1,18 +1,31 @@
-# Macro_Nutrients
-Healthy App
+# Macro Journey (Macro_Nutrients)
 
-A new Flutter project for tracking macronutrients and healthy lifestyle.
+A nutrition and macro tracker application built with **React Native / Expo**.
 
-## Getting Started
+## 🚀 Getting Started (React Native / Expo)
 
-This project is a starting point for a Flutter application.
+To run the application:
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+# Install dependencies (if needed)
+npm install
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+# Start development server
+npm start
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Run on web
+npm run web
+
+# Run on Android / iOS
+npm run android
+npm run ios
+```
+
+## 📁 Project Structure
+
+- **`src/`**: React Native screens, modal components, and styling theme.
+- **`assets/`**: Icons, splash screen, and images for the Expo app.
+- **`App.js`**: Main React entry point with navigation and state.
+- **`legacy_backup/`**:
+  - `flutter/`: Previous Flutter mobile codebase.
+  - `public_web/`: Previous Vanilla HTML/CSS/JS web and Express server codebase.
