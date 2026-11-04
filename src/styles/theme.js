@@ -6,7 +6,6 @@ export const theme = {
   bgInputFocus: '#2a2a2a',
   bgPreview: 'rgba(46, 204, 113, 0.05)',
 
-  // Accent Colors matching original design
   accentLime: '#BBF246',
   limeGlow: '#B6ED3D',
   primaryGreen: '#2ECC71',
@@ -17,7 +16,6 @@ export const theme = {
   borderCard: 'rgba(255, 255, 255, 0.05)',
   borderInput: 'rgba(46, 204, 113, 0.5)',
 
-  // Gradients matching original design
   gradCal: ['#2E7D32', '#1B5E20'],
   gradCarb: ['#263238', '#101010'],
   gradProt: ['#1B5E20', '#0F2E14'],
@@ -31,7 +29,6 @@ export const theme = {
   dangerBg: 'rgba(255, 50, 50, 0.1)',
   dangerBorder: 'rgba(255, 50, 50, 0.3)',
 
-  // Font family names mapped to loaded Outfit fonts
   fonts: {
     regular: 'Outfit_400Regular',
     semiBold: 'Outfit_600SemiBold',

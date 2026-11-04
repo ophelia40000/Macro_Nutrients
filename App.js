@@ -103,7 +103,14 @@ export default function App() {
     Outfit_900Black,
   });
 
-  const [currentView, setCurrentView] = useState('view-dashboard');
+  const [currentView, setCurrentView] = useState(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const v = params.get('view');
+      if (v) return v;
+    }
+    return 'view-dashboard';
+  });
   const [goals, setGoals] = useState(DEFAULT_GOALS);
   const [entries, setEntries] = useState(DEFAULT_ENTRIES);
   const [presets, setPresets] = useState(DEFAULT_PRESETS);
@@ -113,7 +120,6 @@ export default function App() {
   const [lastResetDate, setLastResetDate] = useState(getLocalDateStr());
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load persisted state on startup
   useEffect(() => {
     async function loadData() {
       try {
@@ -126,7 +132,7 @@ export default function App() {
           if (parsed.workouts) setWorkouts(parsed.workouts);
           if (parsed.photos) setPhotos(parsed.photos);
 
-          // Daily reset check matching public/js/app.js
+          // Reset entries on new calendar day
           if (parsed.lastResetDate !== today) {
             setEntries([]);
             setBurnedCalories(0);
@@ -148,7 +154,6 @@ export default function App() {
     loadData();
   }, []);
 
-  // Save state on change
   useEffect(() => {
     if (!isLoaded) return;
     async function saveData() {
@@ -170,7 +175,6 @@ export default function App() {
     saveData();
   }, [goals, entries, presets, burnedCalories, workouts, photos, lastResetDate, isLoaded]);
 
-  // Consumed totals
   const consumed = {
     calories: entries.reduce((sum, item) => sum + (Number(item.calories) || 0), 0),
     protein: entries.reduce((sum, item) => sum + (Number(item.protein) || 0), 0),

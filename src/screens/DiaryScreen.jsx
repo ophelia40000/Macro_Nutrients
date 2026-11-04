@@ -44,7 +44,13 @@ export default function DiaryScreen({
   setPresets,
   onNavigate,
 }) {
-  const [isAddEntryOpen, setIsAddEntryOpen] = useState(false);
+  const [isAddEntryOpen, setIsAddEntryOpen] = useState(() => {
+    if (typeof window !== 'undefined' && window.location) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('modal') === 'add-entry';
+    }
+    return false;
+  });
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
   const [isEditPresetOpen, setIsEditPresetOpen] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
