@@ -1,6 +1,6 @@
 # Macro Journey
 
-Aplikasi pelacak nutrisi, target kalori harian (makronutrien), dan progres latihan fisik berbasis React Native & Expo.
+Aplikasi pelacak nutrisi, target kalori harian (makronutrien), dan progres latihan fisik.
 
 ---
 
