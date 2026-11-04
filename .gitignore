@@ -37,11 +37,10 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
-# Legacy Flutter / Web artifacts
-legacy_backup/flutter/.dart_tool/
-legacy_backup/flutter/build/
-legacy_backup/flutter/.flutter-plugins-dependencies
-legacy_backup/public_web/node_modules/
+# Flutter version artifacts
+flutter_version/.dart_tool/
+flutter_version/build/
+flutter_version/.flutter-plugins-dependencies
 
 # Agent / AI skills and artifacts
 .agent/
