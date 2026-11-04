@@ -24,6 +24,8 @@ import ExerciseScreen from './src/screens/ExerciseScreen';
 import CameraScreen from './src/screens/CameraScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 
+import PhoneFrame from './src/components/PhoneFrame';
+
 const STORAGE_KEY = '@macro_journey_state_v1';
 
 function getLocalDateStr() {
@@ -94,6 +96,27 @@ const DEFAULT_WORKOUTS = [
   },
 ];
 
+const DEFAULT_PHOTOS = [
+  {
+    id: 'prog_1',
+    image: require('./assets/progress_1.jpg'),
+    weight: 74.5,
+    date: '12 Okt 2024',
+  },
+  {
+    id: 'prog_2',
+    image: require('./assets/progress_2.jpg'),
+    weight: 72.8,
+    date: '02 Nov 2024',
+  },
+  {
+    id: 'prog_3',
+    image: require('./assets/progress_3.jpg'),
+    weight: 70.2,
+    date: '24 Nov 2024',
+  },
+];
+
 export default function App() {
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,
@@ -116,7 +139,7 @@ export default function App() {
   const [presets, setPresets] = useState(DEFAULT_PRESETS);
   const [burnedCalories, setBurnedCalories] = useState(0);
   const [workouts, setWorkouts] = useState(DEFAULT_WORKOUTS);
-  const [photos, setPhotos] = useState([]);
+  const [photos, setPhotos] = useState(DEFAULT_PHOTOS);
   const [lastResetDate, setLastResetDate] = useState(getLocalDateStr());
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -130,7 +153,11 @@ export default function App() {
           if (parsed.goals) setGoals(parsed.goals);
           if (parsed.presets) setPresets(parsed.presets);
           if (parsed.workouts) setWorkouts(parsed.workouts);
-          if (parsed.photos) setPhotos(parsed.photos);
+          if (parsed.photos && parsed.photos.length > 0) {
+            setPhotos(parsed.photos);
+          } else {
+            setPhotos(DEFAULT_PHOTOS);
+          }
 
           // Reset entries on new calendar day
           if (parsed.lastResetDate !== today) {
@@ -190,68 +217,97 @@ export default function App() {
     );
   }
 
+  const isFrame =
+    Platform.OS === 'web' &&
+    typeof window !== 'undefined' &&
+    new URLSearchParams(window.location.search).get('frame') === 'true';
+
+  const screenContent = (
+    <View style={[styles.appContainer, isFrame && styles.frameInnerContent]}>
+      {currentView === 'view-dashboard' && (
+        <DashboardScreen
+          goals={goals}
+          setGoals={setGoals}
+          consumed={consumed}
+          burnedCalories={burnedCalories}
+          setBurnedCalories={setBurnedCalories}
+          onNavigate={setCurrentView}
+          userInitial="R"
+        />
+      )}
+
+      {currentView === 'view-diary' && (
+        <DiaryScreen
+          goals={goals}
+          consumed={consumed}
+          burnedCalories={burnedCalories}
+          entries={entries}
+          setEntries={setEntries}
+          presets={presets}
+          setPresets={setPresets}
+          onNavigate={setCurrentView}
+        />
+      )}
+
+      {currentView === 'view-exercise' && (
+        <ExerciseScreen
+          workouts={workouts}
+          setWorkouts={setWorkouts}
+          onNavigate={setCurrentView}
+        />
+      )}
+
+      {currentView === 'view-camera' && (
+        <CameraScreen
+          photos={photos}
+          setPhotos={setPhotos}
+          currentWeight={goals.weight || 70}
+          onNavigate={setCurrentView}
+        />
+      )}
+
+      {currentView === 'view-profile' && (
+        <ProfileScreen
+          goals={goals}
+          setGoals={setGoals}
+          consumed={consumed}
+          burnedCalories={burnedCalories}
+          onNavigate={setCurrentView}
+        />
+      )}
+    </View>
+  );
+
+  if (isFrame) {
+    return (
+      <View style={styles.webFrameRoot}>
+        <PhoneFrame time="9:41" darkIcons={true}>
+          {screenContent}
+        </PhoneFrame>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fafaf9" />
-
-      <View style={styles.appContainer}>
-        {currentView === 'view-dashboard' && (
-          <DashboardScreen
-            goals={goals}
-            setGoals={setGoals}
-            consumed={consumed}
-            burnedCalories={burnedCalories}
-            setBurnedCalories={setBurnedCalories}
-            onNavigate={setCurrentView}
-            userInitial="R"
-          />
-        )}
-
-        {currentView === 'view-diary' && (
-          <DiaryScreen
-            goals={goals}
-            consumed={consumed}
-            burnedCalories={burnedCalories}
-            entries={entries}
-            setEntries={setEntries}
-            presets={presets}
-            setPresets={setPresets}
-            onNavigate={setCurrentView}
-          />
-        )}
-
-        {currentView === 'view-exercise' && (
-          <ExerciseScreen
-            workouts={workouts}
-            setWorkouts={setWorkouts}
-            onNavigate={setCurrentView}
-          />
-        )}
-
-        {currentView === 'view-camera' && (
-          <CameraScreen
-            photos={photos}
-            setPhotos={setPhotos}
-            currentWeight={goals.weight || 70}
-            onNavigate={setCurrentView}
-          />
-        )}
-
-        {currentView === 'view-profile' && (
-          <ProfileScreen
-            goals={goals}
-            setGoals={setGoals}
-            consumed={consumed}
-            burnedCalories={burnedCalories}
-            onNavigate={setCurrentView}
-          />
-        )}
-      </View>
+      {screenContent}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  webFrameRoot: {
+    flex: 1,
+    minHeight: '100vh',
+    backgroundColor: 'transparent',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  frameInnerContent: {
+    maxWidth: '100%',
+  },
   container: {
     flex: 1,
     backgroundColor: '#fafaf9',

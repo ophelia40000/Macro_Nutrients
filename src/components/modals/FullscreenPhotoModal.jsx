@@ -41,14 +41,16 @@ export default function FullscreenPhotoModal({
 }) {
   if (!photo) return null;
 
-  const dateFormatted = photo.date
-    ? new Date(photo.date).toLocaleDateString(undefined, {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : '--';
+  const parsedDate = photo.date ? new Date(photo.date) : null;
+  const dateFormatted =
+    parsedDate && !isNaN(parsedDate.getTime())
+      ? parsedDate.toLocaleDateString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })
+      : (photo.date || '--');
 
   const handleDelete = () => {
     Alert.alert(
@@ -83,7 +85,10 @@ export default function FullscreenPhotoModal({
 
         <View style={styles.contentContainer}>
           <Image
-            source={{ uri: photo.imagePath }}
+            source={
+              photo.image ||
+              (photo.imagePath ? { uri: photo.imagePath } : null)
+            }
             style={styles.fullImage}
             resizeMode="contain"
           />

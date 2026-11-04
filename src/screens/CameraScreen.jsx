@@ -9,7 +9,6 @@ import {
   Alert,
   Modal,
   TextInput,
-  Dimensions,
   StatusBar,
   Platform,
 } from 'react-native';
@@ -17,10 +16,30 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import FullscreenPhotoModal from '../components/modals/FullscreenPhotoModal';
 
-const { width } = Dimensions.get('window');
-const GRID_GAP = 12;
-const PADDING = 20;
-const ITEM_SIZE = (Math.min(width, 480) - PADDING * 2 - GRID_GAP * 2) / 3;
+import progress1 from '../../assets/progress_1.jpg';
+import progress2 from '../../assets/progress_2.jpg';
+import progress3 from '../../assets/progress_3.jpg';
+
+const DEFAULT_LOCAL_PHOTOS = [
+  {
+    id: 'prog_1',
+    image: progress1,
+    weight: 74.5,
+    date: '12 Okt 2024',
+  },
+  {
+    id: 'prog_2',
+    image: progress2,
+    weight: 72.8,
+    date: '02 Nov 2024',
+  },
+  {
+    id: 'prog_3',
+    image: progress3,
+    weight: 70.2,
+    date: '24 Nov 2024',
+  },
+];
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -53,6 +72,11 @@ export default function CameraScreen({
   const [manualUrl, setManualUrl] = useState('');
   const [inputWeight, setInputWeight] = useState(currentWeight.toString());
   const [isFabHomeState, setIsFabHomeState] = useState(false);
+
+  const displayPhotos = photos && photos.length > 0 ? photos : DEFAULT_LOCAL_PHOTOS;
+  const latestWeight = displayPhotos[displayPhotos.length - 1]?.weight ?? 70.2;
+  const totalPhotos = displayPhotos.length;
+  const milestoneDays = 45;
 
   const handleFabPress = () => {
     if (isFabHomeState) {
@@ -123,13 +147,17 @@ export default function CameraScreen({
   };
 
   const addPhotoEntry = (imageUri, customWeight) => {
+    const d = new Date();
+    const dateFormatted = `${String(d.getDate()).padStart(2, '0')} ${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
     const newPhoto = {
       id: Date.now(),
       imagePath: imageUri,
-      date: new Date().toISOString(),
+      date: dateFormatted,
       weight: parseFloat(customWeight || currentWeight) || 70.0,
     };
-    setPhotos([newPhoto, ...photos]);
+    if (setPhotos) {
+      setPhotos([...displayPhotos, newPhoto]);
+    }
   };
 
   const handleSaveManualUrl = () => {
@@ -145,24 +173,10 @@ export default function CameraScreen({
   };
 
   const handleDeletePhoto = (photoId) => {
-    setPhotos(photos.filter((p) => p.id !== photoId));
+    if (setPhotos) {
+      setPhotos(displayPhotos.filter((p) => p.id !== photoId));
+    }
   };
-
-  const monthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
-
-  const grouped = {};
-  (photos || []).forEach((p) => {
-    const d = new Date(p.date || Date.now());
-    const key = `${monthNames[d.getMonth()].toUpperCase()} ${d.getDate()}`;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(p);
-  });
-
-  const totalPhotos = photos.length;
-  const totalMilestones = Object.keys(grouped).length;
 
   return (
     <View style={styles.viewContainer}>
@@ -185,7 +199,6 @@ export default function CameraScreen({
             <Text style={styles.headerSubtitle}>Visual physique timeline</Text>
           </View>
         </View>
-
       </View>
 
       <ScrollView
@@ -196,7 +209,7 @@ export default function CameraScreen({
           <View style={styles.telemetryTopRow}>
             <Text style={styles.telemetryKicker}>PHYSIQUE TIMELINE</Text>
             <View style={styles.weightBadge}>
-              <Text style={styles.weightBadgeText}>{currentWeight} kg current</Text>
+              <Text style={styles.weightBadgeText}>{latestWeight} kg terkini</Text>
             </View>
           </View>
 
@@ -207,13 +220,13 @@ export default function CameraScreen({
             </View>
             <View style={styles.colSeparator} />
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiValue}>{totalMilestones}</Text>
+              <Text style={styles.kpiValue}>{milestoneDays}</Text>
               <Text style={styles.kpiLabel}>Milestone Days</Text>
             </View>
             <View style={styles.colSeparator} />
             <View style={styles.kpiCol}>
               <Text style={[styles.kpiValue, { color: tokens.cyanEdge }]}>
-                {currentWeight}
+                {Math.round(currentWeight || 70)}
                 <Text style={styles.kpiUnit}>kg</Text>
               </Text>
               <Text style={styles.kpiLabel}>Active Target</Text>
@@ -225,12 +238,12 @@ export default function CameraScreen({
           <Text style={styles.sectionTitle}>Physique Gallery</Text>
           <View style={styles.countBadge}>
             <Text style={styles.countBadgeText}>
-              {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
+              {displayPhotos.length} {displayPhotos.length === 1 ? 'photo' : 'photos'}
             </Text>
           </View>
         </View>
 
-        {photos.length === 0 ? (
+        {displayPhotos.length === 0 ? (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIconBox}>
               <Feather name="camera" size={22} color={tokens.ashGray} />
@@ -249,42 +262,29 @@ export default function CameraScreen({
             </TouchableOpacity>
           </View>
         ) : (
-          Object.keys(grouped).map((dateStr) => {
-            const groupPhotos = grouped[dateStr];
-            const displayWeight = groupPhotos[0]?.weight ?? currentWeight;
-
-            return (
-              <View key={dateStr} style={styles.dateGroup}>
-                <View style={styles.dateHeader}>
-                  <View style={styles.datePillBadge}>
-                    <Text style={styles.datePillText}>{dateStr}</Text>
+          <View style={styles.galleryRow}>
+            {displayPhotos.map((photo) => {
+              const imgSrc =
+                photo.image ||
+                (photo.imagePath ? { uri: photo.imagePath } : null);
+              return (
+                <TouchableOpacity
+                  key={photo.id}
+                  style={styles.photoCard}
+                  activeOpacity={0.88}
+                  onPress={() => handleOpenFullscreen(photo)}
+                  accessibilityLabel={`View photo taken on ${photo.date}`}
+                  accessibilityRole="button"
+                >
+                  <Image source={imgSrc} style={styles.photoImg} />
+                  <View style={styles.photoWeightBadge}>
+                    <Text style={styles.photoWeightText}>{photo.weight} kg</Text>
                   </View>
-                  <Text style={styles.dateWeightText}>
-                    {Number(displayWeight).toFixed(1)} kg
-                  </Text>
-                </View>
-
-                <View style={styles.galleryGrid}>
-                  {groupPhotos.map((photo) => (
-                    <TouchableOpacity
-                      key={photo.id}
-                      style={styles.galleryItem}
-                      activeOpacity={0.88}
-                      onPress={() => handleOpenFullscreen(photo)}
-                      accessibilityLabel={`View photo taken on ${dateStr}`}
-                      accessibilityRole="button"
-                    >
-                      <Image
-                        source={{ uri: photo.imagePath }}
-                        style={styles.galleryImage}
-                        resizeMode="cover"
-                      />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            );
-          })
+                  <Text style={styles.photoDateText}>{photo.date}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         )}
       </ScrollView>
 
@@ -443,9 +443,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   weightBadge: {
-    backgroundColor: tokens.stoneCanvas,
+    backgroundColor: '#f5f5f4',
     paddingHorizontal: 10,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: tokens.radiusPill,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
@@ -493,7 +493,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
     color: tokens.inkBlack,
     letterSpacing: -0.2,
@@ -562,153 +562,164 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: tokens.inkBlack,
   },
-  dateGroup: {
+  galleryRow: {
+    flexDirection: 'row',
     gap: 10,
-  },
-  dateHeader: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 2,
   },
-  datePillBadge: {
-    backgroundColor: tokens.stoneCanvas,
-    borderWidth: 1,
-    borderColor: tokens.stoneBorder,
-    borderRadius: tokens.radiusPill,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  datePillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: tokens.inkBlack,
-    letterSpacing: 0.5,
-  },
-  dateWeightText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: tokens.warmGray,
-  },
-  galleryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: GRID_GAP,
-  },
-  galleryItem: {
-    width: ITEM_SIZE,
-    height: ITEM_SIZE,
-    borderRadius: tokens.radiusCard,
+  photoCard: {
+    flex: 1,
+    height: 135,
+    borderRadius: 12,
+    backgroundColor: '#1c1917',
     overflow: 'hidden',
-    backgroundColor: tokens.pureWhite,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
+    position: 'relative',
   },
-  galleryImage: {
+  photoImg: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
+  },
+  photoWeightBadge: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.72)',
+    paddingHorizontal: 6,
+    paddingVertical: 2.5,
+    borderRadius: tokens.radiusPill,
+  },
+  photoWeightText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  photoDateText: {
+    position: 'absolute',
+    bottom: 6,
+    left: 6,
+    right: 6,
+    color: '#ffffff',
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+    textShadowColor: 'rgba(0, 0, 0, 0.95)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   fabPill: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
+    bottom: 24,
     right: 20,
+    minHeight: 46,
     backgroundColor: tokens.cyanSignal,
     borderRadius: tokens.radiusPill,
-    height: 48,
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    zIndex: 40,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#110c2e',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.16,
+        shadowRadius: 10,
+      },
+      android: {
+        elevation: 5,
+      },
+      web: {
+        boxShadow: '0 4px 14px rgba(59, 166, 241, 0.35)',
+      },
+    }),
   },
   fabHomeState: {
-    backgroundColor: tokens.inkBlack,
+    backgroundColor: tokens.soot,
   },
   fabPillText: {
     color: '#ffffff',
     fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(12, 10, 9, 0.45)',
+    backgroundColor: 'rgba(12, 10, 9, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   dialogBox: {
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 380,
     backgroundColor: tokens.pureWhite,
     borderRadius: tokens.radiusFeatureCard,
-    padding: 20,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
+    padding: 20,
+    gap: 14,
   },
   dialogTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: tokens.inkBlack,
-    letterSpacing: -0.2,
-    marginBottom: 4,
   },
   dialogSub: {
-    fontSize: 13,
+    fontSize: 12,
     color: tokens.warmGray,
-    marginBottom: 16,
+    marginTop: -8,
   },
   inputGroup: {
-    backgroundColor: tokens.stoneCanvas,
-    borderRadius: tokens.radiusInput,
-    borderWidth: 1,
-    borderColor: tokens.stoneBorder,
-    paddingHorizontal: 14,
-    height: 44,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
+    backgroundColor: tokens.stoneCanvas,
+    borderWidth: 1,
+    borderColor: tokens.stoneBorder,
+    borderRadius: tokens.radiusInput,
+    paddingHorizontal: 12,
+    gap: 8,
   },
   input: {
     flex: 1,
+    height: 42,
+    fontSize: 13,
     color: tokens.inkBlack,
-    fontSize: 14,
   },
   unitSuffix: {
-    color: tokens.ashGray,
     fontSize: 12,
     fontWeight: '600',
+    color: tokens.warmGray,
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    alignItems: 'center',
     gap: 10,
-    marginTop: 8,
+    marginTop: 6,
   },
   btnGhost: {
-    paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: tokens.radiusPill,
-    borderWidth: 1,
-    borderColor: tokens.stoneBorder,
-    backgroundColor: 'transparent',
+    paddingVertical: 9,
+    borderRadius: tokens.radiusInput,
   },
   btnGhostText: {
-    color: tokens.warmGray,
     fontSize: 13,
     fontWeight: '600',
+    color: tokens.warmGray,
   },
   btnPrimary: {
     backgroundColor: tokens.cyanSignal,
+    paddingHorizontal: 16,
     paddingVertical: 9,
-    paddingHorizontal: 18,
-    borderRadius: tokens.radiusPill,
+    borderRadius: tokens.radiusInput,
   },
   btnPrimaryText: {
-    color: '#ffffff',
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
