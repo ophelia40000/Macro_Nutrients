@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import ConfirmModal from '../components/modals/ConfirmModal';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -34,6 +35,10 @@ export default function ProfileScreen({
   goals,
   setGoals,
   onNavigate,
+  authUser,
+  isCloudSyncing = false,
+  onOpenLogin,
+  onSignOut,
 }) {
   const [heightVal, setHeightVal] = useState(goals.height ? goals.height.toString() : '170');
   const [weightVal, setWeightVal] = useState(goals.weight ? goals.weight.toString() : '70');
@@ -41,6 +46,16 @@ export default function ProfileScreen({
   const [neckVal, setNeckVal] = useState(goals.neck ? goals.neck.toString() : '38');
   const [waistVal, setWaistVal] = useState(goals.waist ? goals.waist.toString() : '80');
   const [hipVal, setHipVal] = useState(goals.hip ? goals.hip.toString() : '90');
+  const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    setHeightVal(goals.height ? goals.height.toString() : '170');
+    setWeightVal(goals.weight ? goals.weight.toString() : '70');
+    setGender(goals.gender || 'male');
+    setNeckVal(goals.neck ? goals.neck.toString() : '38');
+    setWaistVal(goals.waist ? goals.waist.toString() : '80');
+    setHipVal(goals.hip ? goals.hip.toString() : '90');
+  }, [goals]);
 
   const calculateBodyFat = () => {
     const h = parseFloat(heightVal) || 0;
@@ -85,7 +100,18 @@ export default function ProfileScreen({
       <StatusBar barStyle="dark-content" backgroundColor={tokens.stoneCanvas} />
 
       <View style={styles.appHeader}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          activeOpacity={0.8}
+          onPress={() => onNavigate('view-dashboard')}
+          accessibilityLabel="Back to Home"
+          accessibilityRole="button"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Feather name="arrow-left" size={18} color={tokens.inkBlack} />
+        </TouchableOpacity>
         <Text style={styles.appTitle}>Biometric Profile</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView
@@ -94,10 +120,56 @@ export default function ProfileScreen({
       >
         <View style={styles.identityCard}>
           <View style={styles.avatarCircle}>
-            <Feather name="user" size={32} color={tokens.cyanEdge} />
+            {authUser ? (
+              <Text style={styles.avatarLetter}>
+                {(authUser.displayName || authUser.email || 'U').charAt(0).toUpperCase()}
+              </Text>
+            ) : (
+              <Feather name="user" size={32} color={tokens.cyanEdge} />
+            )}
           </View>
-          <Text style={styles.identityTitle}>Body Metrics</Text>
-          <Text style={styles.identitySub}>Physical statistics & body composition</Text>
+          <Text style={styles.identityTitle}>
+            {authUser ? (authUser.displayName || 'Google Account') : 'Body Metrics'}
+          </Text>
+          <Text style={styles.identitySub}>
+            {authUser
+              ? (authUser.email || 'Cloud sync enabled')
+              : 'Physical statistics & body composition'}
+          </Text>
+
+          <View style={styles.cloudActionWrap}>
+            {authUser ? (
+              <View style={styles.cloudRow}>
+                <View style={styles.cloudSyncBadge}>
+                  <Feather name="cloud" size={12} color="#0369a1" />
+                  <Text style={styles.cloudSyncBadgeText}>
+                    {isCloudSyncing ? 'Syncing...' : 'Cloud Synced'}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.signOutBtn}
+                  activeOpacity={0.8}
+                  onPress={() => setIsSignOutConfirmOpen(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Sign out"
+                >
+                  <Feather name="log-out" size={13} color={tokens.warmGray} />
+                  <Text style={styles.signOutBtnText}>Sign Out</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.googleConnectBtn}
+                activeOpacity={0.85}
+                onPress={onOpenLogin}
+                accessibilityRole="button"
+                accessibilityLabel="Sign in with Google to sync data"
+              >
+                <Ionicons name="logo-google" size={15} color="#4285F4" />
+                <Text style={styles.googleConnectBtnText}>Sign in with Google</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         <View style={styles.card}>
@@ -265,6 +337,18 @@ export default function ProfileScreen({
           <Text style={styles.btnSaveText}>Save Profile Changes</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ConfirmModal
+        visible={isSignOutConfirmOpen}
+        onClose={() => setIsSignOutConfirmOpen(false)}
+        title="Sign Out"
+        message="Switch back to local guest mode? Your cloud data remains safely stored in Firebase."
+        confirmText="Sign Out"
+        destructive
+        onConfirm={() => {
+          if (onSignOut) onSignOut();
+        }}
+      />
     </View>
   );
 }
@@ -276,14 +360,27 @@ const styles = StyleSheet.create({
   },
   appHeader: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? 14 : 10,
-    paddingBottom: 14,
+    paddingBottom: 12,
     backgroundColor: tokens.stoneCanvas,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: tokens.pureWhite,
+    borderWidth: 1,
+    borderColor: tokens.stoneBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerSpacer: {
+    width: 36,
   },
   appTitle: {
     fontSize: 17,
@@ -294,7 +391,7 @@ const styles = StyleSheet.create({
   contentScrollable: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 28,
+    paddingBottom: Platform.OS === 'web' ? 'max(28px, env(safe-area-inset-bottom))' : 28,
     gap: 14,
   },
   identityCard: {
@@ -337,6 +434,65 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: tokens.warmGray,
     marginTop: 2,
+  },
+  avatarLetter: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: tokens.cyanEdge,
+  },
+  cloudActionWrap: {
+    marginTop: 14,
+  },
+  cloudRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  cloudSyncBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#e0f2fe',
+    borderRadius: 9999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  cloudSyncBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0369a1',
+  },
+  signOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: tokens.stoneCanvas,
+    borderWidth: 1,
+    borderColor: tokens.stoneBorder,
+    borderRadius: 9999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  signOutBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.warmGray,
+  },
+  googleConnectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: tokens.stoneCanvas,
+    borderWidth: 1,
+    borderColor: tokens.stoneBorder,
+    borderRadius: 9999,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+  },
+  googleConnectBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: tokens.inkBlack,
   },
   card: {
     backgroundColor: tokens.pureWhite,

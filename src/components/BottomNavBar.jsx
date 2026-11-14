@@ -211,7 +211,7 @@ export default function BottomNavBar({
         styles.outerWrapper,
         Platform.OS === 'web' &&
           !isFramed && {
-            paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+            paddingBottom: 'clamp(10px, calc(env(safe-area-inset-bottom, 0px) * 0.5), 18px)',
           },
         isFramed && styles.outerWrapperFramed,
         { backgroundColor: dockBackdrop },

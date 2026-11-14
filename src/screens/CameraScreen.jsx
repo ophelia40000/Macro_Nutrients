@@ -16,31 +16,6 @@ import * as ImagePicker from 'expo-image-picker';
 import FullscreenPhotoModal from '../components/modals/FullscreenPhotoModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 
-import progress1 from '../../assets/progress_1.jpg';
-import progress2 from '../../assets/progress_2.jpg';
-import progress3 from '../../assets/progress_3.jpg';
-
-const DEFAULT_LOCAL_PHOTOS = [
-  {
-    id: 'prog_1',
-    image: progress1,
-    weight: 74.5,
-    date: '12 Okt 2024',
-  },
-  {
-    id: 'prog_2',
-    image: progress2,
-    weight: 72.8,
-    date: '02 Nov 2024',
-  },
-  {
-    id: 'prog_3',
-    image: progress3,
-    weight: 70.2,
-    date: '24 Nov 2024',
-  },
-];
-
 const tokens = {
   stoneCanvas: '#fafaf9',
   pureWhite: '#ffffff',
@@ -60,11 +35,27 @@ const tokens = {
   radiusInput: 6,
 };
 
+function formatPhotoDate(dateVal) {
+  if (!dateVal) return '--';
+  const str = String(dateVal);
+  // Format ISO timestamps (e.g. 2026-09-13T02:45:41.027Z) nicely; preserve preformatted strings.
+  if (/^\d{4}-\d{2}-\d{2}T/.test(str)) {
+    const parsed = new Date(str);
+    if (!isNaN(parsed.getTime())) {
+      return `${String(parsed.getDate()).padStart(2, '0')} ${parsed.toLocaleString('default', { month: 'short' })} ${parsed.getFullYear()}`;
+    }
+  }
+  return str;
+}
+
 export default function CameraScreen({
   photos = [],
   setPhotos,
   currentWeight = 70,
   onNavigate,
+  isCloudAuthenticated = false,
+  onAddPhotoCloud,
+  onDeletePhotoCloud,
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
@@ -75,10 +66,19 @@ export default function CameraScreen({
   const [isCaptureSheetOpen, setIsCaptureSheetOpen] = useState(false);
   const [noticeState, setNoticeState] = useState(null);
 
-  const displayPhotos = photos && photos.length > 0 ? photos : DEFAULT_LOCAL_PHOTOS;
-  const latestWeight = displayPhotos[displayPhotos.length - 1]?.weight ?? 70.2;
+  const displayPhotos = Array.isArray(photos) ? photos : [];
+  const latestWeight =
+    displayPhotos[displayPhotos.length - 1]?.weight ?? currentWeight ?? 70;
   const totalPhotos = displayPhotos.length;
-  const milestoneDays = 45;
+  const milestoneDays = (() => {
+    if (displayPhotos.length === 0) return 0;
+    const timestamps = displayPhotos
+      .map((p) => new Date(p.date).getTime())
+      .filter((t) => !isNaN(t));
+    if (timestamps.length < 2) return 1;
+    const spanMs = Math.max(...timestamps) - Math.min(...timestamps);
+    return Math.max(1, Math.round(spanMs / (1000 * 60 * 60 * 24)));
+  })();
 
   const prepareImageUriForStorage = (uri) => {
     if (Platform.OS !== 'web' || typeof window === 'undefined' || !uri) {
@@ -170,16 +170,17 @@ export default function CameraScreen({
   };
 
   const addPhotoEntry = (imageUri, customWeight) => {
-    const d = new Date();
-    const dateFormatted = `${String(d.getDate()).padStart(2, '0')} ${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
     const newPhoto = {
       id: Date.now(),
       imagePath: imageUri,
-      date: dateFormatted,
+      date: new Date().toISOString(),
       weight: parseFloat(customWeight || currentWeight) || 70.0,
     };
     if (setPhotos) {
       setPhotos([...displayPhotos, newPhoto]);
+    }
+    if (onAddPhotoCloud) {
+      onAddPhotoCloud(newPhoto);
     }
   };
 
@@ -198,6 +199,9 @@ export default function CameraScreen({
   const handleDeletePhoto = (photoId) => {
     if (setPhotos) {
       setPhotos(displayPhotos.filter((p) => p.id !== photoId));
+    }
+    if (onDeletePhotoCloud) {
+      onDeletePhotoCloud(photoId);
     }
   };
 
@@ -291,7 +295,7 @@ export default function CameraScreen({
                   <View style={styles.photoWeightBadge}>
                     <Text style={styles.photoWeightText}>{photo.weight} kg</Text>
                   </View>
-                  <Text style={styles.photoDateText}>{photo.date}</Text>
+                  <Text style={styles.photoDateText}>{formatPhotoDate(photo.date)}</Text>
                 </TouchableOpacity>
               );
             })}

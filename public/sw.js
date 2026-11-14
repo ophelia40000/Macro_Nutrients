@@ -1,4 +1,4 @@
-const CACHE_NAME = 'macro-journey-pwa-v1';
+const CACHE_NAME = 'macro-journey-pwa-v3';
 const APP_SHELL_URLS = [
   '/',
   '/manifest.json',
@@ -37,6 +37,18 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+  if (
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    url.hostname === '[::1]' ||
+    url.port === '8081' ||
+    url.port === '19006' ||
+    url.port === '8082' ||
+    url.pathname.includes('.bundle') ||
+    url.pathname.includes('hot-update')
+  ) {
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(

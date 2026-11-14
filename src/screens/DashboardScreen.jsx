@@ -44,6 +44,8 @@ export default function DashboardScreen({
   setBurnedCalories,
   onNavigate,
   userInitial = 'R',
+  authUser = null,
+  onOpenLogin,
 }) {
   const [isAdjustGoalsOpen, setIsAdjustGoalsOpen] = useState(false);
   const [isBurnOpen, setIsBurnOpen] = useState(false);
@@ -158,23 +160,47 @@ export default function DashboardScreen({
           <View style={styles.brandInfoRow}>
             <Text style={styles.appTitle}>Macro Journey</Text>
             <View style={styles.datePill}>
-              <Text style={styles.datePillText}>Today · 29 Oct</Text>
+              <Text style={styles.datePillText}>
+                {`Today · ${new Date().toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                })}`}
+              </Text>
             </View>
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.profileBtn}
-          activeOpacity={0.8}
-          onPress={() => onNavigate('view-profile')}
-          onLongPress={handleProfileLongPress}
-          delayLongPress={500}
-          accessibilityLabel="Open User Profile"
-          accessibilityRole="button"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Text style={styles.profileLetter}>{userInitial}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRightCluster}>
+          {!authUser && onOpenLogin && (
+            <TouchableOpacity
+              style={styles.signInPill}
+              activeOpacity={0.85}
+              onPress={onOpenLogin}
+              accessibilityLabel="Sign in with Google"
+              accessibilityRole="button"
+            >
+              <Feather name="log-in" size={12} color="#0369a1" />
+              <Text style={styles.signInPillText}>Sign in</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity
+            style={styles.profileBtn}
+            activeOpacity={0.8}
+            onPress={() => onNavigate('view-profile')}
+            onLongPress={handleProfileLongPress}
+            delayLongPress={500}
+            accessibilityLabel="Open User Profile"
+            accessibilityRole="button"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.profileLetter}>
+              {authUser?.displayName
+                ? authUser.displayName.charAt(0).toUpperCase()
+                : userInitial}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -554,12 +580,26 @@ export default function DashboardScreen({
         visible={isProfileOptionsOpen}
         onClose={() => setIsProfileOptionsOpen(false)}
         title="Account / Options"
-        message="What would you like to do?"
+        message={
+          authUser
+            ? `Signed in as ${authUser.displayName || authUser.email}`
+            : 'Sign in with Google to sync your saved cloud data.'
+        }
         actions={[
+          ...(!authUser && onOpenLogin
+            ? [
+                {
+                  label: 'Sign in with Google',
+                  icon: 'log-in',
+                  tone: 'primary',
+                  onPress: onOpenLogin,
+                },
+              ]
+            : []),
           {
             label: 'View Profile',
             icon: 'user',
-            tone: 'primary',
+            tone: authUser ? 'primary' : 'default',
             onPress: () => onNavigate('view-profile'),
           },
         ]}
@@ -634,6 +674,27 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: tokens.warmGray,
     fontWeight: '500',
+  },
+  headerRightCluster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  signInPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    height: 32,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    backgroundColor: '#e0f2fe',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 166, 241, 0.28)',
+  },
+  signInPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#0369a1',
   },
   profileBtn: {
     width: 36,

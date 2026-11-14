@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   TouchableWithoutFeedback,
+  ActivityIndicator,
   Platform,
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import { signInWithGoogle } from '../../services/firebase';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -28,8 +30,35 @@ const tokens = {
 };
 
 export default function LoginModal({ visible, onClose, onLogin }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleGooglePress = async () => {
+    if (isLoading) return;
+    setErrorMsg('');
+    setIsLoading(true);
+    try {
+      const user = await signInWithGoogle();
+      if (user) {
+        if (onLogin) onLogin(user);
+        onClose();
+      }
+    } catch (err) {
+      const code = err?.code || '';
+      if (code === 'auth/popup-closed-by-user') {
+        setErrorMsg('Login dibatalkan sebelum selesai.');
+      } else if (code === 'auth/unauthorized-domain') {
+        setErrorMsg('Domain belum terdaftar di Firebase Authentication Authorized Domains.');
+      } else {
+        setErrorMsg(err?.message || 'Gagal login dengan Google.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Modal visible={visible} animationType="fade" transparent>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -40,26 +69,33 @@ export default function LoginModal({ visible, onClose, onLogin }) {
 
               <Text style={styles.title}>Macro Journey</Text>
               <Text style={styles.sub}>
-                Quiet, local-first nutrition telemetry and progressive workout ledger
+                Sign in with Google to load and sync your saved macros, workouts, and progress photos
               </Text>
 
+              {!!errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+
               <TouchableOpacity
-                style={styles.googleBtn}
+                style={[styles.googleBtn, isLoading && styles.btnDisabled]}
                 activeOpacity={0.85}
-                onPress={() => {
-                  if (onLogin) onLogin();
-                  onClose();
-                }}
+                disabled={isLoading}
+                onPress={handleGooglePress}
                 accessibilityLabel="Continue with Google"
                 accessibilityRole="button"
               >
-                <Ionicons name="logo-google" size={18} color="#4285F4" />
-                <Text style={styles.googleBtnText}>Continue with Google</Text>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color={tokens.cyanEdge} />
+                ) : (
+                  <Ionicons name="logo-google" size={18} color="#4285F4" />
+                )}
+                <Text style={styles.googleBtnText}>
+                  {isLoading ? 'Signing in...' : 'Continue with Google'}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.guestBtn}
                 activeOpacity={0.8}
+                disabled={isLoading}
                 onPress={onClose}
                 accessibilityLabel="Continue as Guest"
                 accessibilityRole="button"
@@ -142,6 +178,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     marginBottom: 10,
+  },
+  btnDisabled: {
+    opacity: 0.7,
+  },
+  errorText: {
+    width: '100%',
+    fontSize: 12,
+    lineHeight: 17,
+    color: '#c8371d',
+    backgroundColor: 'rgba(200, 55, 29, 0.08)',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    textAlign: 'center',
+    marginBottom: 12,
   },
   googleBtnText: {
     color: tokens.inkBlack,
