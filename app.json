@@ -5,22 +5,27 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0F0F0F",
-    "primaryColor": "#BBF246",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#fafaf9",
+    "primaryColor": "#0369a1",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0F0F0F",
+        "backgroundColor": "#fafaf9",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Macro Journey",
+      "shortName": "MacroJourney",
+      "description": "Daily nutrition, caloric budget, workout, and physique progress tracker.",
+      "themeColor": "#fafaf9",
+      "backgroundColor": "#fafaf9"
     },
     "plugins": [
       "expo-font"

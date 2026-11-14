@@ -7,13 +7,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Alert,
   StatusBar,
   Platform,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import AddWorkoutModal from '../components/modals/AddWorkoutModal';
 import ExerciseSetsModal from '../components/modals/ExerciseSetsModal';
+import ConfirmModal from '../components/modals/ConfirmModal';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -64,6 +64,7 @@ export default function ExerciseScreen({
   const [activeExercise, setActiveExercise] = useState(null);
   const [isSetsModalOpen, setIsSetsModalOpen] = useState(false);
   const [isFabHomeState, setIsFabHomeState] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -138,20 +139,7 @@ export default function ExerciseScreen({
   };
 
   const handleDeleteExercise = (ex) => {
-    Alert.alert(
-      'Remove Exercise',
-      `Delete "${ex.name}" and all historical log records?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            setWorkouts(workouts.filter((w) => w.id !== ex.id));
-          },
-        },
-      ]
-    );
+    setDeleteTarget(ex);
   };
 
   const allGrouped = {};
@@ -589,6 +577,24 @@ export default function ExerciseScreen({
         }}
         exercise={activeExercise}
         onSaveSets={handleSaveSets}
+      />
+
+      <ConfirmModal
+        visible={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Remove Exercise"
+        message={
+          deleteTarget
+            ? `Delete "${deleteTarget.name}" and all historical log records?`
+            : ''
+        }
+        confirmText="Delete"
+        destructive
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          setWorkouts(workouts.filter((w) => w.id !== deleteTarget.id));
+          setDeleteTarget(null);
+        }}
       />
     </View>
   );

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   StatusBar,
   Platform,
 } from 'react-native';
@@ -13,6 +12,7 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AddEntryModal from '../components/modals/AddEntryModal';
 import PresetsModal from '../components/modals/PresetsModal';
 import EditPresetModal from '../components/modals/EditPresetModal';
+import ConfirmModal from '../components/modals/ConfirmModal';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -54,6 +54,7 @@ export default function DiaryScreen({
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
   const [isEditPresetOpen, setIsEditPresetOpen] = useState(false);
   const [editingPreset, setEditingPreset] = useState(null);
+  const [confirmState, setConfirmState] = useState(null);
 
   const totalCal = entries.reduce((sum, item) => sum + (Number(item.calories) || 0), 0);
   const totalProt = entries.reduce((sum, item) => sum + (Number(item.protein) || 0), 0);
@@ -86,22 +87,17 @@ export default function DiaryScreen({
     const item = entries[index];
     if (!item) return;
 
-    Alert.alert(
-      'Remove Entry',
-      `Delete "${item.name}" from today's ledger?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            const next = [...entries];
-            next.splice(index, 1);
-            setEntries(next);
-          },
-        },
-      ]
-    );
+    setConfirmState({
+      title: 'Remove Entry',
+      message: `Delete "${item.name}" from today's ledger?`,
+      confirmText: 'Delete',
+      destructive: true,
+      onConfirm: () => {
+        const next = [...entries];
+        next.splice(index, 1);
+        setEntries(next);
+      },
+    });
   };
 
   const handleOpenEditPreset = (preset = null) => {
@@ -125,22 +121,17 @@ export default function DiaryScreen({
     const preset = presets[index];
     if (!preset) return;
 
-    Alert.alert(
-      'Delete Preset',
-      `Delete "${preset.name}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            const next = [...presets];
-            next.splice(index, 1);
-            setPresets(next);
-          },
-        },
-      ]
-    );
+    setConfirmState({
+      title: 'Delete Preset',
+      message: `Delete "${preset.name}"?`,
+      confirmText: 'Delete',
+      destructive: true,
+      onConfirm: () => {
+        const next = [...presets];
+        next.splice(index, 1);
+        setPresets(next);
+      },
+    });
   };
 
   return (
@@ -154,13 +145,15 @@ export default function DiaryScreen({
         </View>
 
         <TouchableOpacity
-          style={styles.headerCircleBtn}
+          style={styles.headerPresetsBtn}
+          activeOpacity={0.85}
           onPress={() => setIsPresetsOpen(true)}
           accessibilityLabel="Manage Meal Presets"
           accessibilityRole="button"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Feather name="bookmark" size={18} color={tokens.inkBlack} />
+          <Feather name="layers" size={14} color="#0369a1" />
+          <Text style={styles.headerPresetsText}>Presets</Text>
         </TouchableOpacity>
       </View>
 
@@ -394,6 +387,16 @@ export default function DiaryScreen({
         preset={editingPreset}
         onSavePreset={handleSavePreset}
       />
+
+      <ConfirmModal
+        visible={!!confirmState}
+        onClose={() => setConfirmState(null)}
+        title={confirmState?.title}
+        message={confirmState?.message}
+        confirmText={confirmState?.confirmText}
+        destructive={confirmState?.destructive}
+        onConfirm={confirmState?.onConfirm}
+      />
     </View>
   );
 }
@@ -419,15 +422,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  headerCircleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  headerPresetsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
     backgroundColor: tokens.pureWhite,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  headerPresetsText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.inkBlack,
   },
   headerTitleBlock: {
     gap: 1,

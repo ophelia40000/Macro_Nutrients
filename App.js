@@ -213,7 +213,7 @@ export default function App() {
   if (!fontsLoaded || !isLoaded) {
     return (
       <View style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color={theme.accentLime} />
+        <ActivityIndicator size="large" color="#0369a1" />
       </View>
     );
   }
@@ -320,7 +320,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fafaf9',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop:
+      Platform.OS === 'web'
+        ? 'env(safe-area-inset-top)'
+        : Platform.OS === 'android'
+          ? StatusBar.currentHeight
+          : 0,
   },
   center: {
     justifyContent: 'center',

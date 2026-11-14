@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -6,11 +6,11 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Dimensions,
   Platform,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import ConfirmModal from './ConfirmModal';
 
 const { height } = Dimensions.get('window');
 
@@ -39,6 +39,8 @@ export default function FullscreenPhotoModal({
   photo,
   onDelete,
 }) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   if (!photo) return null;
 
   const parsedDate = photo.date ? new Date(photo.date) : null;
@@ -53,21 +55,7 @@ export default function FullscreenPhotoModal({
       : (photo.date || '--');
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Progress Photo',
-      'Remove this physique record permanently from your timeline?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            onDelete(photo.id);
-            onClose();
-          },
-        },
-      ]
-    );
+    setIsConfirmOpen(true);
   };
 
   return (
@@ -125,6 +113,19 @@ export default function FullscreenPhotoModal({
             </TouchableOpacity>
           </View>
         </View>
+
+        <ConfirmModal
+          visible={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          title="Delete Progress Photo"
+          message="Remove this physique record permanently from your timeline?"
+          confirmText="Delete"
+          destructive
+          onConfirm={() => {
+            onDelete(photo.id);
+            onClose();
+          }}
+        />
       </View>
     </Modal>
   );

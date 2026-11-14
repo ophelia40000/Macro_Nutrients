@@ -7,13 +7,13 @@ import {
   StyleSheet,
   Pressable,
   Animated,
-  Alert,
   StatusBar,
   Platform,
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AdjustGoalsModal from '../components/modals/AdjustGoalsModal';
 import BurnModal from '../components/modals/BurnModal';
+import ConfirmModal from '../components/modals/ConfirmModal';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -48,6 +48,7 @@ export default function DashboardScreen({
   const [isAdjustGoalsOpen, setIsAdjustGoalsOpen] = useState(false);
   const [isBurnOpen, setIsBurnOpen] = useState(false);
   const [isRadialActive, setIsRadialActive] = useState(false);
+  const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
 
   const radialAnim = useRef(new Animated.Value(0)).current;
 
@@ -108,14 +109,7 @@ export default function DashboardScreen({
   };
 
   const handleProfileLongPress = () => {
-    Alert.alert(
-      'Account / Options',
-      'What would you like to do?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'View Profile', onPress: () => onNavigate('view-profile') },
-      ]
-    );
+    setIsProfileOptionsOpen(true);
   };
 
   const cameraTranslateX = radialAnim.interpolate({
@@ -554,6 +548,21 @@ export default function DashboardScreen({
         onClose={() => setIsBurnOpen(false)}
         burnedCalories={burnedCalories}
         onSave={setBurnedCalories}
+      />
+
+      <ConfirmModal
+        visible={isProfileOptionsOpen}
+        onClose={() => setIsProfileOptionsOpen(false)}
+        title="Account / Options"
+        message="What would you like to do?"
+        actions={[
+          {
+            label: 'View Profile',
+            icon: 'user',
+            tone: 'primary',
+            onPress: () => onNavigate('view-profile'),
+          },
+        ]}
       />
     </View>
   );

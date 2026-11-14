@@ -209,6 +209,10 @@ export default function BottomNavBar({
     <View
       style={[
         styles.outerWrapper,
+        Platform.OS === 'web' &&
+          !isFramed && {
+            paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+          },
         isFramed && styles.outerWrapperFramed,
         { backgroundColor: dockBackdrop },
       ]}

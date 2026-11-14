@@ -6,7 +6,6 @@ import {
   ScrollView,
   Image,
   StyleSheet,
-  Alert,
   Modal,
   TextInput,
   StatusBar,
@@ -15,6 +14,7 @@ import {
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import FullscreenPhotoModal from '../components/modals/FullscreenPhotoModal';
+import ConfirmModal from '../components/modals/ConfirmModal';
 
 import progress1 from '../../assets/progress_1.jpg';
 import progress2 from '../../assets/progress_2.jpg';
@@ -72,11 +72,43 @@ export default function CameraScreen({
   const [manualUrl, setManualUrl] = useState('');
   const [inputWeight, setInputWeight] = useState(currentWeight.toString());
   const [isFabHomeState, setIsFabHomeState] = useState(false);
+  const [isCaptureSheetOpen, setIsCaptureSheetOpen] = useState(false);
+  const [noticeState, setNoticeState] = useState(null);
 
   const displayPhotos = photos && photos.length > 0 ? photos : DEFAULT_LOCAL_PHOTOS;
   const latestWeight = displayPhotos[displayPhotos.length - 1]?.weight ?? 70.2;
   const totalPhotos = displayPhotos.length;
   const milestoneDays = 45;
+
+  const prepareImageUriForStorage = (uri) => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined' || !uri) {
+      return Promise.resolve(uri);
+    }
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const maxDim = 960;
+          const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(uri);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.78));
+        } catch {
+          resolve(uri);
+        }
+      };
+      img.onerror = () => resolve(uri);
+      img.src = uri;
+    });
+  };
 
   const handleFabPress = () => {
     if (isFabHomeState) {
@@ -91,59 +123,50 @@ export default function CameraScreen({
     setIsFabHomeState((prev) => !prev);
   };
 
+  const handleCameraPick = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      setNoticeState({
+        title: 'Permission Denied',
+        message: 'Camera permission is required.',
+      });
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const persistedUri = await prepareImageUriForStorage(result.assets[0].uri);
+      addPhotoEntry(persistedUri);
+    }
+  };
+
+  const handleLibraryPick = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      setNoticeState({
+        title: 'Permission Denied',
+        message: 'Library permission is required.',
+      });
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const persistedUri = await prepareImageUriForStorage(result.assets[0].uri);
+      addPhotoEntry(persistedUri);
+    }
+  };
+
   const triggerPhotoCapture = () => {
-    Alert.alert(
-      'Take Progress Photo',
-      'Choose a method to record your physique milestone:',
-      [
-        {
-          text: 'Camera',
-          onPress: async () => {
-            const { status } = await ImagePicker.requestCameraPermissionsAsync();
-            if (status !== 'granted') {
-              Alert.alert('Permission Denied', 'Camera permission is required.');
-              return;
-            }
-            const result = await ImagePicker.launchCameraAsync({
-              mediaTypes: ['images'],
-              allowsEditing: true,
-              aspect: [1, 1],
-              quality: 0.7,
-            });
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-              addPhotoEntry(result.assets[0].uri);
-            }
-          },
-        },
-        {
-          text: 'Choose from Library',
-          onPress: async () => {
-            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (status !== 'granted') {
-              Alert.alert('Permission Denied', 'Library permission is required.');
-              return;
-            }
-            const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ['images'],
-              allowsEditing: true,
-              aspect: [1, 1],
-              quality: 0.7,
-            });
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-              addPhotoEntry(result.assets[0].uri);
-            }
-          },
-        },
-        {
-          text: 'Enter Image URL',
-          onPress: () => {
-            setInputWeight(currentWeight.toString());
-            setIsUrlModalOpen(true);
-          },
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    setIsCaptureSheetOpen(true);
   };
 
   const addPhotoEntry = (imageUri, customWeight) => {
@@ -357,6 +380,44 @@ export default function CameraScreen({
           </View>
         </View>
       </Modal>
+
+      <ConfirmModal
+        visible={isCaptureSheetOpen}
+        onClose={() => setIsCaptureSheetOpen(false)}
+        title="Take Progress Photo"
+        message="Choose a method to record your physique milestone:"
+        actions={[
+          {
+            label: 'Camera',
+            icon: 'camera',
+            tone: 'primary',
+            onPress: handleCameraPick,
+          },
+          {
+            label: 'Choose from Library',
+            icon: 'image',
+            onPress: handleLibraryPick,
+          },
+          {
+            label: 'Enter Image URL',
+            icon: 'link',
+            onPress: () => {
+              setInputWeight(currentWeight.toString());
+              setIsUrlModalOpen(true);
+            },
+          },
+        ]}
+      />
+
+      <ConfirmModal
+        visible={!!noticeState}
+        onClose={() => setNoticeState(null)}
+        title={noticeState?.title}
+        message={noticeState?.message}
+        confirmText="OK"
+        hideCancel
+        onConfirm={() => setNoticeState(null)}
+      />
     </View>
   );
 }
