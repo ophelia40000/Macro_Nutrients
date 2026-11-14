@@ -188,6 +188,7 @@ export default function DashboardScreen({
         showsVerticalScrollIndicator={false}
       >
         <TouchableOpacity
+          style={styles.cardSlot}
           activeOpacity={0.92}
           onPress={() => onNavigate('view-diary')}
           accessibilityLabel="View food diary entries"
@@ -265,6 +266,7 @@ export default function DashboardScreen({
         </TouchableOpacity>
 
         <TouchableOpacity
+          style={styles.cardSlot}
           activeOpacity={0.92}
           onPress={() => onNavigate('view-diary')}
           accessibilityLabel="View macronutrient distribution in food diary"
@@ -420,6 +422,7 @@ export default function DashboardScreen({
         </TouchableOpacity>
 
         <TouchableOpacity
+          style={styles.cardSlot}
           activeOpacity={0.92}
           onPress={() => setIsBurnOpen(true)}
           accessibilityLabel="Adjust exercise calories burned"
@@ -443,7 +446,7 @@ export default function DashboardScreen({
               <Text style={styles.macroUnitText}>kcal credited to budget</Text>
             </View>
 
-            <View style={styles.hairlineProgressTrack}>
+            <View style={[styles.hairlineProgressTrack, styles.exerciseLastTrack]}>
               <View
                 style={[
                   styles.hairlineProgressFill,
@@ -565,9 +568,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 14 : 10,
-    paddingBottom: 14,
+    paddingHorizontal: 18,
+    paddingTop: Platform.OS === 'android' ? 10 : 8,
+    paddingBottom: 10,
     backgroundColor: tokens.stoneCanvas,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
@@ -624,9 +627,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   profileBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: tokens.pureWhite,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
@@ -650,17 +653,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   contentScrollable: {
+    flexGrow: 1,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 110,
-    gap: 14,
+    paddingTop: 12,
+    paddingBottom: 68,
+    gap: 12,
+  },
+  cardSlot: {
+    flexGrow: 1,
   },
   cardBase: {
+    flex: 1,
+    justifyContent: 'space-between',
     backgroundColor: tokens.pureWhite,
     borderRadius: tokens.radiusFeatureCard,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
-    padding: 20,
+    padding: 16,
     ...Platform.select({
       ios: {
         shadowColor: '#000000',
@@ -674,7 +683,7 @@ const styles = StyleSheet.create({
     }),
   },
   heroCalCard: {
-    padding: 20,
+    padding: 16,
   },
   heroCalCardSurplus: {
     borderColor: tokens.surplusAlert,
@@ -683,7 +692,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 8,
     flexWrap: 'wrap',
     gap: 8,
   },
@@ -747,16 +756,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   calorieBigValue: {
-    fontSize: 44,
+    fontSize: 38,
     fontWeight: '400',
     color: tokens.inkBlack,
     letterSpacing: -1,
   },
   calorieUnitLabel: {
-    fontSize: 15,
+    fontSize: 14,
     color: tokens.warmGray,
     fontWeight: '400',
   },
@@ -766,7 +775,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.stoneCanvas,
     borderRadius: 2,
     overflow: 'hidden',
-    marginBottom: 12,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
   },
@@ -782,7 +791,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: tokens.radiusInput,
     marginTop: 2,
   },
@@ -808,12 +817,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   macroCard: {
-    padding: 20,
+    padding: 15,
     borderRadius: tokens.radiusCard,
   },
   shareTrackWrapper: {
-    marginBottom: 14,
-    paddingBottom: 10,
+    marginBottom: 10,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
   },
@@ -832,7 +841,7 @@ const styles = StyleSheet.create({
   shareLegendRow: {
     flexDirection: 'row',
     gap: 14,
-    marginTop: 8,
+    marginTop: 6,
   },
   legendItemWithDot: {
     flexDirection: 'row',
@@ -850,13 +859,13 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   macroRowItem: {
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   macroRowTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   macroIdentity: {
     flexDirection: 'row',
@@ -867,54 +876,57 @@ const styles = StyleSheet.create({
     marginRight: 2,
   },
   macroRowName: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '400',
     color: tokens.inkBlack,
     letterSpacing: -0.2,
   },
   macroRemainingHighlight: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '500',
   },
   macroRemainingNeutral: {
-    fontSize: 13,
+    fontSize: 12.5,
     fontWeight: '400',
   },
   macroRowBottom: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: -4,
+    marginTop: -2,
   },
   macroRatioMeta: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: tokens.warmGray,
     fontWeight: '400',
   },
   macroCalMeta: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: tokens.warmGray,
     fontWeight: '400',
   },
   macroSeparator: {
     height: 1,
     backgroundColor: tokens.stoneBorder,
-    marginVertical: 10,
+    marginVertical: 7,
   },
   exerciseCard: {
-    padding: 20,
+    padding: 16,
     borderRadius: tokens.radiusCard,
+  },
+  exerciseLastTrack: {
+    marginBottom: 0,
   },
   secondaryGhostBtn: {
     backgroundColor: 'transparent',
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 5,
     borderRadius: tokens.radiusPill,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
   },
   secondaryGhostBtnText: {
-    fontSize: 12,
+    fontSize: 11.5,
     color: tokens.inkBlack,
     fontWeight: '400',
   },
@@ -922,23 +934,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   burnCalLarge: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '400',
     color: tokens.cyanEdge,
     letterSpacing: -0.5,
   },
   macroUnitText: {
-    fontSize: 13,
+    fontSize: 12.5,
     color: tokens.warmGray,
     fontWeight: '400',
   },
   fabContainer: {
     position: 'absolute',
-    bottom: 24,
-    right: 20,
+    bottom: 14,
+    right: 16,
     alignItems: 'flex-end',
     justifyContent: 'center',
     zIndex: 30,
@@ -967,11 +979,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   pillFab: {
-    minHeight: 46,
-    backgroundColor: tokens.cyanSignal,
+    minHeight: 44,
+    backgroundColor: '#0369a1',
     borderRadius: tokens.radiusPill,
     borderWidth: 1,
-    borderColor: tokens.cyanEdge,
+    borderColor: 'rgba(7, 89, 133, 0.2)',
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
@@ -980,13 +992,16 @@ const styles = StyleSheet.create({
     zIndex: 30,
     ...Platform.select({
       ios: {
-        shadowColor: '#110c2e',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
+        shadowColor: '#0369a1',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.28,
+        shadowRadius: 14,
       },
       android: {
-        elevation: 4,
+        elevation: 5,
+      },
+      web: {
+        boxShadow: '0 6px 18px rgba(3, 105, 161, 0.3)',
       },
     }),
   },

@@ -25,6 +25,7 @@ import CameraScreen from './src/screens/CameraScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 
 import PhoneFrame from './src/components/PhoneFrame';
+import BottomNavBar from './src/components/BottomNavBar';
 
 const STORAGE_KEY = '@macro_journey_state_v1';
 
@@ -224,57 +225,65 @@ export default function App() {
 
   const screenContent = (
     <View style={[styles.appContainer, isFrame && styles.frameInnerContent]}>
-      {currentView === 'view-dashboard' && (
-        <DashboardScreen
-          goals={goals}
-          setGoals={setGoals}
-          consumed={consumed}
-          burnedCalories={burnedCalories}
-          setBurnedCalories={setBurnedCalories}
-          onNavigate={setCurrentView}
-          userInitial="R"
-        />
-      )}
+      <View style={styles.screenArea}>
+        {currentView === 'view-dashboard' && (
+          <DashboardScreen
+            goals={goals}
+            setGoals={setGoals}
+            consumed={consumed}
+            burnedCalories={burnedCalories}
+            setBurnedCalories={setBurnedCalories}
+            onNavigate={setCurrentView}
+            userInitial="R"
+          />
+        )}
 
-      {currentView === 'view-diary' && (
-        <DiaryScreen
-          goals={goals}
-          consumed={consumed}
-          burnedCalories={burnedCalories}
-          entries={entries}
-          setEntries={setEntries}
-          presets={presets}
-          setPresets={setPresets}
-          onNavigate={setCurrentView}
-        />
-      )}
+        {currentView === 'view-diary' && (
+          <DiaryScreen
+            goals={goals}
+            consumed={consumed}
+            burnedCalories={burnedCalories}
+            entries={entries}
+            setEntries={setEntries}
+            presets={presets}
+            setPresets={setPresets}
+            onNavigate={setCurrentView}
+          />
+        )}
 
-      {currentView === 'view-exercise' && (
-        <ExerciseScreen
-          workouts={workouts}
-          setWorkouts={setWorkouts}
-          onNavigate={setCurrentView}
-        />
-      )}
+        {currentView === 'view-exercise' && (
+          <ExerciseScreen
+            workouts={workouts}
+            setWorkouts={setWorkouts}
+            onNavigate={setCurrentView}
+          />
+        )}
 
-      {currentView === 'view-camera' && (
-        <CameraScreen
-          photos={photos}
-          setPhotos={setPhotos}
-          currentWeight={goals.weight || 70}
-          onNavigate={setCurrentView}
-        />
-      )}
+        {currentView === 'view-camera' && (
+          <CameraScreen
+            photos={photos}
+            setPhotos={setPhotos}
+            currentWeight={goals.weight || 70}
+            onNavigate={setCurrentView}
+          />
+        )}
 
-      {currentView === 'view-profile' && (
-        <ProfileScreen
-          goals={goals}
-          setGoals={setGoals}
-          consumed={consumed}
-          burnedCalories={burnedCalories}
-          onNavigate={setCurrentView}
-        />
-      )}
+        {currentView === 'view-profile' && (
+          <ProfileScreen
+            goals={goals}
+            setGoals={setGoals}
+            consumed={consumed}
+            burnedCalories={burnedCalories}
+            onNavigate={setCurrentView}
+          />
+        )}
+      </View>
+
+      <BottomNavBar
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        isFramed={isFrame}
+      />
     </View>
   );
 
@@ -323,5 +332,10 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     alignSelf: 'center',
     backgroundColor: '#fafaf9',
+  },
+  screenArea: {
+    flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
   },
 });

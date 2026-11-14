@@ -32,6 +32,14 @@ const tokens = {
   radiusInput: 6,
 };
 
+function getLocalDateStr() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function ExerciseSetsModal({
   visible,
   onClose,
@@ -43,7 +51,7 @@ export default function ExerciseSetsModal({
 
   useEffect(() => {
     if (visible && exercise) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDateStr();
       const todayEntry = exercise.history?.find((h) => h.date === today);
       const lastEntry = exercise.history?.length
         ? exercise.history[exercise.history.length - 1]

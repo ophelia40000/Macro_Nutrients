@@ -85,17 +85,7 @@ export default function ProfileScreen({
       <StatusBar barStyle="dark-content" backgroundColor={tokens.stoneCanvas} />
 
       <View style={styles.appHeader}>
-        <TouchableOpacity
-          style={styles.backBtn}
-          onPress={() => onNavigate('view-dashboard')}
-          accessibilityLabel="Back to Dashboard"
-          accessibilityRole="button"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Feather name="arrow-left" size={20} color={tokens.inkBlack} />
-        </TouchableOpacity>
         <Text style={styles.appTitle}>Biometric Profile</Text>
-        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
@@ -286,7 +276,7 @@ const styles = StyleSheet.create({
   },
   appHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: Platform.OS === 'android' ? 14 : 10,
@@ -294,27 +284,6 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.stoneCanvas,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: tokens.pureWhite,
-    borderWidth: 1,
-    borderColor: tokens.stoneBorder,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
   },
   appTitle: {
     fontSize: 17,
@@ -325,7 +294,7 @@ const styles = StyleSheet.create({
   contentScrollable: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 60,
+    paddingBottom: 28,
     gap: 14,
   },
   identityCard: {

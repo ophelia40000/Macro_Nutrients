@@ -148,21 +148,9 @@ export default function DiaryScreen({
       <StatusBar barStyle="dark-content" backgroundColor={tokens.stoneCanvas} />
 
       <View style={styles.appHeader}>
-        <View style={styles.headerLeftGroup}>
-          <TouchableOpacity
-            style={styles.headerCircleBtn}
-            onPress={() => onNavigate('view-dashboard')}
-            accessibilityLabel="Back to Dashboard"
-            accessibilityRole="button"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Feather name="arrow-left" size={18} color={tokens.inkBlack} />
-          </TouchableOpacity>
-
-          <View style={styles.headerTitleBlock}>
-            <Text style={styles.headerTitle}>Nutrition Diary</Text>
-            <Text style={styles.headerSubtitle}>Daily intake ledger</Text>
-          </View>
+        <View style={styles.headerTitleBlock}>
+          <Text style={styles.headerTitle}>Nutrition Diary</Text>
+          <Text style={styles.headerSubtitle}>Daily intake ledger</Text>
         </View>
 
         <TouchableOpacity
@@ -457,7 +445,7 @@ const styles = StyleSheet.create({
   contentScrollable: {
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 110,
+    paddingBottom: 84,
     gap: 20,
   },
   heroBudgetCard: {
@@ -740,7 +728,7 @@ const styles = StyleSheet.create({
   },
   fabPill: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 32 : 24,
+    bottom: 16,
     right: 20,
     backgroundColor: tokens.cyanSignal,
     borderRadius: tokens.radiusPill,
