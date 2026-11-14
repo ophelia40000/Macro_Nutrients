@@ -48,7 +48,15 @@ export default function LoginModal({ visible, onClose, onLogin }) {
       if (code === 'auth/popup-closed-by-user') {
         setErrorMsg('Login dibatalkan sebelum selesai.');
       } else if (code === 'auth/unauthorized-domain') {
-        setErrorMsg('Domain belum terdaftar di Firebase Authentication Authorized Domains.');
+        const currentHost =
+          Platform.OS === 'web' && typeof window !== 'undefined'
+            ? window.location.hostname
+            : '';
+        setErrorMsg(
+          currentHost
+            ? `Domain "${currentHost}" belum terdaftar di Firebase Authentication Authorized Domains.`
+            : 'Domain belum terdaftar di Firebase Authentication Authorized Domains.'
+        );
       } else {
         setErrorMsg(err?.message || 'Gagal login dengan Google.');
       }
