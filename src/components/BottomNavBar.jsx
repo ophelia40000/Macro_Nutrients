@@ -20,6 +20,7 @@ export const BOTTOM_NAV_ITEMS = [
 
 const DOCK_COLORS = {
   surface: '#ffffff',
+  androidSurface: '#fafaf9',
   border: '#e8e6e5',
   activePillBg: '#e0f2fe',
   activePillBorder: 'rgba(59, 166, 241, 0.25)',
@@ -87,6 +88,7 @@ export default function BottomNavBar({
   currentView,
   onNavigate,
   isFramed = false,
+  isAndroidWeb = false,
 }) {
   const activeNavIndex = BOTTOM_NAV_ITEMS.findIndex(
     (item) => item.id === currentView
@@ -202,6 +204,7 @@ export default function BottomNavBar({
     <View
       style={[
         styles.outerWrapper,
+        isAndroidWeb && !isFramed && { backgroundColor: DOCK_COLORS.androidSurface },
         Platform.OS === 'web' &&
           !isFramed && {
             paddingBottom: 'clamp(8px, calc(env(safe-area-inset-bottom, 0px) * 0.65), 22px)',

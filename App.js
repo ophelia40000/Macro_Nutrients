@@ -343,17 +343,22 @@ export default function App() {
     }
   };
 
+  const isAndroidWeb =
+    Platform.OS === 'web' &&
+    typeof navigator !== 'undefined' &&
+    /Android/i.test(navigator.userAgent || '');
+
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return;
     const isProfile = currentView === 'view-profile';
     const isNarrowMobile = typeof window !== 'undefined' && window.innerWidth <= 480;
     const bg =
-      !isProfile && isNarrowMobile
+      !isProfile && isNarrowMobile && !isAndroidWeb
         ? 'linear-gradient(to bottom, #fafaf9 0%, #fafaf9 50%, #ffffff 50%, #ffffff 100%)'
         : '#fafaf9';
     document.documentElement.style.background = bg;
     document.body.style.background = bg;
-  }, [currentView]);
+  }, [currentView, isAndroidWeb]);
 
   const consumed = {
     calories: entries.reduce((sum, item) => sum + (Number(item.calories) || 0), 0),
@@ -379,7 +384,7 @@ export default function App() {
     <View
       style={[
         styles.appContainer,
-        currentView !== 'view-profile' && styles.appContainerWhiteBottom,
+        currentView !== 'view-profile' && !isAndroidWeb && styles.appContainerWhiteBottom,
         isFrame && styles.frameInnerContent,
       ]}
     >
@@ -451,6 +456,7 @@ export default function App() {
           currentView={currentView}
           onNavigate={setCurrentView}
           isFramed={isFrame}
+          isAndroidWeb={isAndroidWeb}
         />
       )}
 
