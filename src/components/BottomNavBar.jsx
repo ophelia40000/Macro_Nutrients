@@ -204,7 +204,7 @@ export default function BottomNavBar({
         styles.outerWrapper,
         Platform.OS === 'web' &&
           !isFramed && {
-            paddingBottom: 'clamp(4px, calc(env(safe-area-inset-bottom, 0px) * 0.35), 12px)',
+            paddingBottom: 'clamp(4px, calc(env(safe-area-inset-bottom, 0px) * 0.45), 15px)',
           },
         isFramed && styles.outerWrapperFramed,
       ]}
@@ -308,12 +308,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingVertical: 0,
   },
   slidingSlot: {
     position: 'absolute',
-    top: 2,
-    bottom: 2,
+    top: 0,
+    bottom: 0,
     left: 6,
     paddingHorizontal: 2,
   },
