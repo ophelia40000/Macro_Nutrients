@@ -20,7 +20,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import ConfirmModal from './ConfirmModal';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -32,8 +31,6 @@ const tokens = {
   inkBlack: '#0c0a09',
   cyanSignal: '#3ba6f1',
   cyanEdge: '#3398e1',
-  negativeRed: '#e54d2e',
-  negativeWash: 'rgba(229, 77, 46, 0.08)',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -46,10 +43,8 @@ export default function FullscreenPhotoModal({
   onClose,
   photos = [],
   photo,
-  onDelete,
 }) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [carouselWidth, setCarouselWidth] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -78,7 +73,6 @@ export default function FullscreenPhotoModal({
     slideWidth,
   };
 
-  // Sync starting slide when modal opens on a tapped thumbnail.
   useEffect(() => {
     if (!visible) return;
     const foundIdx = photoList.findIndex((p) => p?.id === photo?.id);
@@ -125,9 +119,8 @@ export default function FullscreenPhotoModal({
     [dragX]
   );
 
-  // Keyboard arrow / Escape navigation on web desktop.
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined' || !visible || isConfirmOpen) {
+    if (Platform.OS !== 'web' || typeof window === 'undefined' || !visible) {
       return;
     }
     const handleKeyDown = (e) => {
@@ -150,7 +143,7 @@ export default function FullscreenPhotoModal({
   ].filter(Boolean);
 
   return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [visible, isConfirmOpen, animateStep, onClose]);
+  }, [visible, animateStep, onClose]);
 
   // Single-item PanResponder guarantees one swipe moves at most one photo.
   const panResponder = useMemo(
@@ -222,10 +215,6 @@ export default function FullscreenPhotoModal({
 
   const getImgSource = (item) =>
     item?.image || (item?.imagePath ? { uri: item.imagePath } : null);
-
-  const handleDelete = () => {
-    setIsConfirmOpen(true);
-  };
 
   const slideSlots = [
     prevPhoto ? { item: prevPhoto, offset: -slideWidth, key: `prev-${prevPhoto.id}` } : null,
@@ -310,33 +299,9 @@ export default function FullscreenPhotoModal({
                   <Text style={styles.timelineBadgeText}>MILESTONE</Text>
                 </View>
               </View>
-
-              <TouchableOpacity
-                style={styles.btnDelete}
-                activeOpacity={0.8}
-                onPress={handleDelete}
-                accessibilityLabel="Delete progress photo"
-                accessibilityRole="button"
-              >
-                <Feather name="trash-2" size={15} color={tokens.negativeRed} />
-                <Text style={styles.btnDeleteText}>Delete Photo Record</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </View>
-
-        <ConfirmModal
-          visible={isConfirmOpen}
-          onClose={() => setIsConfirmOpen(false)}
-          title="Delete Progress Photo"
-          message="Remove this physique record permanently from your timeline?"
-          confirmText="Delete"
-          destructive
-          onConfirm={() => {
-            onDelete(currentPhoto.id);
-            onClose();
-          }}
-        />
       </View>
     </Modal>
   );
@@ -464,22 +429,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: tokens.warmGray,
     letterSpacing: 0.5,
-  },
-  btnDelete: {
-    width: '100%',
-    backgroundColor: tokens.negativeWash,
-    borderWidth: 1,
-    borderColor: tokens.negativeRed,
-    borderRadius: tokens.radiusPill,
-    height: 42,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  btnDeleteText: {
-    color: tokens.negativeRed,
-    fontSize: 13,
-    fontWeight: '600',
   },
 });

@@ -48,7 +48,6 @@ server.listen(8097, async () => {
     });
 
     const page = await browser.newPage();
-    // High DPI for crisp Retina output: 2x scale
     await page.setViewport({ width: 500, height: 1000, deviceScaleFactor: 2 });
 
     for (const item of screens) {
@@ -56,14 +55,12 @@ server.listen(8097, async () => {
       await page.goto(item.url, { waitUntil: 'networkidle0' });
       await new Promise((r) => setTimeout(r, 600));
 
-      // Make outer page transparent
       await page.evaluate((isModal) => {
         document.documentElement.style.background = 'transparent';
         document.body.style.background = 'transparent';
         const root = document.getElementById('root');
         if (root) root.style.background = 'transparent';
 
-        // Only clip modal backdrop if this is a modal view
         if (isModal) {
           const chassis = document.getElementById('phone-chassis');
           if (chassis) {

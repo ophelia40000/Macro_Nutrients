@@ -16,7 +16,6 @@ import {
   Outfit_800ExtraBold,
   Outfit_900Black,
 } from '@expo-google-fonts/outfit';
-import { theme } from './src/styles/theme';
 
 import DashboardScreen from './src/screens/DashboardScreen';
 import DiaryScreen from './src/screens/DiaryScreen';
@@ -99,6 +98,7 @@ export default function App() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [cloudSyncedUid, setCloudSyncedUid] = useState(null);
+  const [cameraSelectionBar, setCameraSelectionBar] = useState(null);
 
   const hasDismissedLoginRef = useRef(false);
   const wasAuthenticatedRef = useRef(false);
@@ -140,7 +140,6 @@ export default function App() {
             setPhotos([]);
           }
 
-          // Reset entries on new calendar day
           if (parsed.lastResetDate !== today) {
             setEntries([]);
             setBurnedCalories(0);
@@ -176,7 +175,7 @@ export default function App() {
         if (wasAuthenticatedRef.current) {
           wasAuthenticatedRef.current = false;
           resetToEmptyState();
-          AsyncStorage.removeItem(GUEST_STORAGE_KEY).catch(() => {});
+          AsyncStorage.removeItem(GUEST_STORAGE_KEY).catch(() => { });
         }
         if (Platform.OS === 'web' && !hasDismissedLoginRef.current) {
           setIsLoginOpen(true);
@@ -433,6 +432,7 @@ export default function App() {
             isCloudAuthenticated={!!authUser}
             onAddPhotoCloud={handleAddPhotoCloud}
             onDeletePhotoCloud={handleDeletePhotoCloud}
+            onSelectionBarChange={setCameraSelectionBar}
           />
         )}
 
@@ -457,6 +457,7 @@ export default function App() {
           onNavigate={setCurrentView}
           isFramed={isFrame}
           isAndroidWeb={isAndroidWeb}
+          selectionActions={currentView === 'view-camera' ? cameraSelectionBar : null}
         />
       )}
 
@@ -485,8 +486,8 @@ export default function App() {
       style={[
         styles.container,
         Platform.OS === 'web' &&
-          currentView !== 'view-profile' &&
-          styles.webContainerNoBottomSafeArea,
+        currentView !== 'view-profile' &&
+        styles.webContainerNoBottomSafeArea,
       ]}
     >
       <StatusBar barStyle="dark-content" backgroundColor="#fafaf9" />

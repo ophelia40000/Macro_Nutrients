@@ -63,7 +63,6 @@ export default function ExerciseScreen({
   const [isAddWorkoutOpen, setIsAddWorkoutOpen] = useState(false);
   const [activeExercise, setActiveExercise] = useState(null);
   const [isSetsModalOpen, setIsSetsModalOpen] = useState(false);
-  const [isFabHomeState, setIsFabHomeState] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,19 +71,6 @@ export default function ExerciseScreen({
   const searchInputRef = useRef(null);
 
   const todayStr = getLocalDateStr();
-
-  const handleFabPress = () => {
-    if (isFabHomeState) {
-      setIsFabHomeState(false);
-      onNavigate('view-dashboard');
-    } else {
-      setIsAddWorkoutOpen(true);
-    }
-  };
-
-  const handleFabLongPress = () => {
-    setIsFabHomeState((prev) => !prev);
-  };
 
   const toggleRegion = (regionName) => {
     setCollapsedRegions((prev) => ({
@@ -542,24 +528,14 @@ export default function ExerciseScreen({
       </ScrollView>
 
       <TouchableOpacity
-        style={[styles.fabPill, isFabHomeState && styles.fabHomeState]}
+        style={styles.fabPill}
         activeOpacity={0.88}
-        onPress={handleFabPress}
-        onLongPress={handleFabLongPress}
-        delayLongPress={280}
+        onPress={() => setIsAddWorkoutOpen(true)}
         accessibilityRole="button"
-        accessibilityLabel={
-          isFabHomeState ? 'Return to Dashboard' : 'Add Workout'
-        }
+        accessibilityLabel="Add Workout"
       >
-        <Feather
-          name={isFabHomeState ? 'home' : 'plus'}
-          size={17}
-          color="#ffffff"
-        />
-        <Text style={styles.fabPillText}>
-          {isFabHomeState ? 'Home' : 'Add Workout'}
-        </Text>
+        <Feather name="plus" size={17} color="#ffffff" />
+        <Text style={styles.fabPillText}>Add Workout</Text>
       </TouchableOpacity>
 
       <AddWorkoutModal
@@ -1110,10 +1086,6 @@ const styles = StyleSheet.create({
         boxShadow: '0 6px 18px rgba(3, 105, 161, 0.3)',
       },
     }),
-  },
-  fabHomeState: {
-    backgroundColor: tokens.inkBlack,
-    borderColor: tokens.inkBlack,
   },
   fabPillText: {
     color: '#ffffff',

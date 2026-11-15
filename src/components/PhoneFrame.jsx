@@ -13,7 +13,6 @@ export default function PhoneFrame({ children, time = '9:41', darkIcons = true }
         testID="phone-chassis"
       >
         <View style={styles.phoneScreen}>
-          {/* Status Bar */}
           <View style={styles.statusBar}>
             <Text style={[styles.timeText, { color: iconColor }]}>{time}</Text>
 
@@ -37,12 +36,10 @@ export default function PhoneFrame({ children, time = '9:41', darkIcons = true }
             </View>
           </View>
 
-          {/* Screen Body */}
           <View style={styles.screenBody}>
             {children}
           </View>
 
-          {/* Home Indicator */}
           <View style={styles.homeIndicatorDock}>
             <View style={styles.homeIndicatorBar} />
           </View>

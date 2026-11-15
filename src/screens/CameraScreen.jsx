@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   TextInput,
   StatusBar,
   Platform,
+  Share,
   useWindowDimensions,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -28,7 +29,7 @@ const tokens = {
   soot: '#1c1917',
   skyWash: '#c1e1f7',
   cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -63,14 +64,16 @@ export default function CameraScreen({
   isCloudAuthenticated = false,
   onAddPhotoCloud,
   onDeletePhotoCloud,
+  onSelectionBarChange,
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
   const [inputWeight, setInputWeight] = useState(currentWeight.toString());
-  const [isFabHomeState, setIsFabHomeState] = useState(false);
   const [isCaptureSheetOpen, setIsCaptureSheetOpen] = useState(false);
+  const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [noticeState, setNoticeState] = useState(null);
   const [galleryWidth, setGalleryWidth] = useState(0);
   const { width: windowWidth } = useWindowDimensions();
@@ -89,6 +92,10 @@ export default function CameraScreen({
   const rawPhotos = Array.isArray(photos) ? photos : [];
   const displayPhotos = [...rawPhotos].sort(
     (a, b) => getPhotoSortTime(b) - getPhotoSortTime(a)
+  );
+  const isSelectionMode = selectedPhotoIds.length > 0;
+  const selectedPhotos = displayPhotos.filter((p) =>
+    selectedPhotoIds.includes(p.id)
   );
   const latestWeight = displayPhotos[0]?.weight ?? currentWeight ?? 70;
   const totalPhotos = displayPhotos.length;
@@ -130,19 +137,6 @@ export default function CameraScreen({
       img.onerror = () => resolve(uri);
       img.src = uri;
     });
-  };
-
-  const handleFabPress = () => {
-    if (isFabHomeState) {
-      setIsFabHomeState(false);
-      onNavigate('view-dashboard');
-    } else {
-      triggerPhotoCapture();
-    }
-  };
-
-  const handleFabLongPress = () => {
-    setIsFabHomeState((prev) => !prev);
   };
 
   const handleCameraPick = async () => {
@@ -218,14 +212,212 @@ export default function CameraScreen({
     setIsFullscreenOpen(true);
   };
 
-  const handleDeletePhoto = (photoId) => {
-    if (setPhotos) {
-      setPhotos(displayPhotos.filter((p) => p.id !== photoId));
+  const clearSelection = () => {
+    setSelectedPhotoIds([]);
+  };
+
+  const togglePhotoSelection = (photoId) => {
+    setSelectedPhotoIds((prev) =>
+      prev.includes(photoId)
+        ? prev.filter((id) => id !== photoId)
+        : [...prev, photoId]
+    );
+  };
+
+  const handlePhotoPress = (photo) => {
+    if (isSelectionMode) {
+      togglePhotoSelection(photo.id);
+      return;
     }
-    if (onDeletePhotoCloud) {
-      onDeletePhotoCloud(photoId);
+    handleOpenFullscreen(photo);
+  };
+
+  const handlePhotoLongPress = (photo) => {
+    if (!photo?.id) return;
+    setSelectedPhotoIds((prev) =>
+      prev.includes(photo.id) ? prev : [...prev, photo.id]
+    );
+  };
+
+  const handleShareSelected = async () => {
+    if (selectedPhotos.length === 0) return;
+    const isSingle = selectedPhotos.length === 1;
+    const first = selectedPhotos[0];
+    const firstUri = first?.imagePath || first?.image?.uri || '';
+    const shareText = isSingle
+      ? `Progress Photo (${formatPhotoDate(first.date)} • ${first.weight} kg)`
+      : `${selectedPhotos.length} Progress Photos (${selectedPhotos
+          .map((p) => `${formatPhotoDate(p.date)} ${p.weight}kg`)
+          .join(', ')})`;
+
+    if (Platform.OS === 'web') {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.share) {
+          const files = (
+            await Promise.all(
+              selectedPhotos.map(async (item, idx) => {
+                const uri = item?.imagePath || item?.image?.uri || '';
+                if (!uri) return null;
+                try {
+                  const response = await fetch(uri);
+                  const blob = await response.blob();
+                  return new File(
+                    [blob],
+                    `progress-photo-${item.id || idx + 1}.jpg`,
+                    { type: blob.type || 'image/jpeg' }
+                  );
+                } catch {
+                  return null;
+                }
+              })
+            )
+          ).filter(Boolean);
+
+          if (
+            files.length > 0 &&
+            navigator.canShare &&
+            navigator.canShare({ files })
+          ) {
+            await navigator.share({
+              title: isSingle ? 'Progress Photo' : 'Progress Photos',
+              text: shareText,
+              files,
+            });
+            clearSelection();
+            return;
+          }
+
+          if (isSingle && /^https?:\/\//i.test(firstUri)) {
+            await navigator.share({
+              title: 'Progress Photo',
+              text: shareText,
+              url: firstUri,
+            });
+            clearSelection();
+            return;
+          }
+        }
+      } catch (err) {
+        if (err?.name === 'AbortError') return;
+      }
+
+      const downloadablePhotos = selectedPhotos.filter((item) =>
+        /^(data:|blob:)/i.test(item?.imagePath || item?.image?.uri || '')
+      );
+      if (typeof document !== 'undefined' && downloadablePhotos.length > 0) {
+        downloadablePhotos.forEach((item, idx) => {
+          const uri = item.imagePath || item.image?.uri;
+          const link = document.createElement('a');
+          link.href = uri;
+          link.download = `progress-photo-${item.id || idx + 1}.jpg`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+        clearSelection();
+        setNoticeState({
+          title:
+            downloadablePhotos.length === 1
+              ? 'Photo Downloaded'
+              : `${downloadablePhotos.length} Photos Downloaded`,
+          message:
+            'Direct sharing is unavailable in this browser, so the selected photos were downloaded instead.',
+        });
+        return;
+      }
+
+      const externalLinks = selectedPhotos
+        .map((item) => item?.imagePath || item?.image?.uri || '')
+        .filter((uri) => /^https?:\/\//i.test(uri));
+      if (
+        typeof navigator !== 'undefined' &&
+        navigator.clipboard?.writeText &&
+        externalLinks.length > 0
+      ) {
+        try {
+          await navigator.clipboard.writeText(externalLinks.join('\n'));
+          clearSelection();
+          setNoticeState({
+            title:
+              externalLinks.length === 1 ? 'Link Copied' : 'Links Copied',
+            message: 'Selected photo links copied to your clipboard.',
+          });
+          return;
+        } catch {
+        }
+      }
+
+      setNoticeState({
+        title: 'Share Unavailable',
+        message: 'Sharing these photos is not supported in the current browser.',
+      });
+      return;
+    }
+
+    try {
+      const shareLinks = selectedPhotos
+        .map((item) => item?.imagePath || item?.image?.uri || '')
+        .filter((uri) => uri && !/^data:/i.test(uri));
+      const shareMessage =
+        shareLinks.length > 0
+          ? `${shareText}\n${shareLinks.join('\n')}`
+          : shareText;
+      const result = await Share.share({
+        title: isSingle ? 'Progress Photo' : 'Progress Photos',
+        message: shareMessage,
+        ...(isSingle && firstUri ? { url: firstUri } : {}),
+      });
+      if (result?.action !== Share.dismissedAction) {
+        clearSelection();
+      }
+    } catch {
+      setNoticeState({
+        title: 'Share Failed',
+        message: 'Unable to share the selected progress photos right now.',
+      });
     }
   };
+
+  const handleDeleteSelected = () => {
+    if (selectedPhotoIds.length === 0) return;
+    const idsToDelete = new Set(selectedPhotoIds);
+    if (setPhotos) {
+      setPhotos(displayPhotos.filter((p) => !idsToDelete.has(p.id)));
+    }
+    if (onDeletePhotoCloud) {
+      selectedPhotoIds.forEach((id) => onDeletePhotoCloud(id));
+    }
+    clearSelection();
+  };
+
+  const selectionHandlersRef = useRef({});
+  selectionHandlersRef.current = {
+    onShare: handleShareSelected,
+    onDelete: () => setIsDeleteConfirmOpen(true),
+    onCancel: clearSelection,
+  };
+
+  useEffect(() => {
+    if (!onSelectionBarChange) return;
+    if (selectedPhotoIds.length > 0) {
+      onSelectionBarChange({
+        count: selectedPhotoIds.length,
+        onShare: () => selectionHandlersRef.current.onShare?.(),
+        onDelete: () => selectionHandlersRef.current.onDelete?.(),
+        onCancel: () => selectionHandlersRef.current.onCancel?.(),
+      });
+    } else {
+      onSelectionBarChange(null);
+    }
+  }, [selectedPhotoIds.length, onSelectionBarChange]);
+
+  useEffect(() => {
+    return () => {
+      if (onSelectionBarChange) {
+        onSelectionBarChange(null);
+      }
+    };
+  }, [onSelectionBarChange]);
 
   return (
     <View style={styles.viewContainer}>
@@ -233,8 +425,12 @@ export default function CameraScreen({
 
       <View style={styles.appHeader}>
         <View style={styles.headerTitleBlock}>
-          <Text style={styles.headerTitle}>Progress Journey</Text>
-          <Text style={styles.headerSubtitle}>Visual physique timeline</Text>
+          <Text style={styles.headerTitle}>
+            {isSelectionMode ? `${selectedPhotoIds.length} selected` : 'Progress Journey'}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {isSelectionMode ? 'Tap photos to select' : 'Visual physique timeline'}
+          </Text>
         </View>
       </View>
 
@@ -246,7 +442,7 @@ export default function CameraScreen({
           <View style={styles.telemetryTopRow}>
             <Text style={styles.telemetryKicker}>PHYSIQUE TIMELINE</Text>
             <View style={styles.weightBadge}>
-              <Text style={styles.weightBadgeText}>{latestWeight} kg terkini</Text>
+              <Text style={styles.weightBadgeText}>{latestWeight} kg latest</Text>
             </View>
           </View>
 
@@ -283,7 +479,7 @@ export default function CameraScreen({
         {displayPhotos.length === 0 ? (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIconBox}>
-              <Feather name="camera" size={22} color={tokens.ashGray} />
+              <Feather name="camera" size={22} color={tokens.warmGray} />
             </View>
             <Text style={styles.emptyTitle}>No progress photos yet</Text>
             <Text style={styles.emptySub}>
@@ -312,22 +508,44 @@ export default function CameraScreen({
               const imgSrc =
                 photo.image ||
                 (photo.imagePath ? { uri: photo.imagePath } : null);
+              const isSelected = selectedPhotoIds.includes(photo.id);
               return (
                 <TouchableOpacity
                   key={photo.id}
                   style={[
                     styles.photoCard,
                     { width: photoCardWidth, height: photoCardHeight },
+                    isSelected && styles.photoCardSelected,
                   ]}
                   activeOpacity={0.88}
-                  onPress={() => handleOpenFullscreen(photo)}
-                  accessibilityLabel={`View photo taken on ${photo.date}`}
+                  onPress={() => handlePhotoPress(photo)}
+                  onLongPress={() => handlePhotoLongPress(photo)}
+                  delayLongPress={400}
+                  accessibilityLabel={
+                    isSelectionMode
+                      ? `${isSelected ? 'Deselect' : 'Select'} photo taken on ${photo.date}`
+                      : `View photo taken on ${photo.date}. Hold to select`
+                  }
                   accessibilityRole="button"
                 >
-                  <Image source={imgSrc} style={styles.photoImg} />
+                  <Image source={imgSrc} style={styles.photoImg} pointerEvents="none" />
+                  {isSelected && <View style={styles.photoSelectedTint} pointerEvents="none" />}
                   <View style={styles.photoWeightBadge}>
                     <Text style={styles.photoWeightText}>{photo.weight} kg</Text>
                   </View>
+                  {isSelectionMode && (
+                    <View
+                      style={[
+                        styles.selectionCheckCircle,
+                        isSelected && styles.selectionCheckCircleActive,
+                      ]}
+                      pointerEvents="none"
+                    >
+                      {isSelected && (
+                        <Feather name="check" size={12} color="#ffffff" />
+                      )}
+                    </View>
+                  )}
                   <View style={styles.photoDateFooter}>
                     <Text
                       style={styles.photoDateText}
@@ -344,34 +562,24 @@ export default function CameraScreen({
         )}
       </ScrollView>
 
-      <TouchableOpacity
-        style={[
-          styles.fabPill,
-          isFabHomeState && styles.fabHomeState,
-        ]}
-        activeOpacity={0.88}
-        onPress={handleFabPress}
-        onLongPress={handleFabLongPress}
-        delayLongPress={280}
-        accessibilityRole="button"
-        accessibilityLabel={isFabHomeState ? 'Return to Dashboard' : 'Capture Progress Photo'}
-      >
-        <Feather
-          name={isFabHomeState ? 'home' : 'camera'}
-          size={18}
-          color="#ffffff"
-        />
-        <Text style={styles.fabPillText}>
-          {isFabHomeState ? 'Home' : 'Capture Photo'}
-        </Text>
-      </TouchableOpacity>
+      {!isSelectionMode && (
+        <TouchableOpacity
+          style={styles.fabPill}
+          activeOpacity={0.88}
+          onPress={triggerPhotoCapture}
+          accessibilityRole="button"
+          accessibilityLabel="Capture Progress Photo"
+        >
+          <Feather name="camera" size={18} color="#ffffff" />
+          <Text style={styles.fabPillText}>Capture Photo</Text>
+        </TouchableOpacity>
+      )}
 
       <FullscreenPhotoModal
         visible={isFullscreenOpen}
         onClose={() => setIsFullscreenOpen(false)}
         photos={displayPhotos}
         photo={selectedPhoto}
-        onDelete={handleDeletePhoto}
       />
 
       <Modal visible={isUrlModalOpen} animationType="fade" transparent>
@@ -383,7 +591,7 @@ export default function CameraScreen({
             </Text>
 
             <View style={styles.inputGroup}>
-              <Feather name="link" size={16} color={tokens.ashGray} />
+              <Feather name="link" size={16} color={tokens.warmGray} />
               <TextInput
                 style={styles.input}
                 value={manualUrl}
@@ -395,7 +603,7 @@ export default function CameraScreen({
             </View>
 
             <View style={styles.inputGroup}>
-              <MaterialCommunityIcons name="scale-bathroom" size={16} color={tokens.ashGray} />
+              <MaterialCommunityIcons name="scale-bathroom" size={16} color={tokens.warmGray} />
               <TextInput
                 style={styles.input}
                 value={inputWeight}
@@ -456,6 +664,24 @@ export default function CameraScreen({
       />
 
       <ConfirmModal
+        visible={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        title={
+          selectedPhotoIds.length === 1
+            ? 'Delete Progress Photo'
+            : `Delete ${selectedPhotoIds.length} Photos`
+        }
+        message={
+          selectedPhotoIds.length === 1
+            ? 'Remove this physique record permanently from your timeline?'
+            : `Remove ${selectedPhotoIds.length} selected physique records permanently from your timeline?`
+        }
+        confirmText="Delete"
+        destructive
+        onConfirm={handleDeleteSelected}
+      />
+
+      <ConfirmModal
         visible={!!noticeState}
         onClose={() => setNoticeState(null)}
         title={noticeState?.title}
@@ -483,21 +709,6 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.stoneCanvas,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
-  },
-  headerLeftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  headerCircleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: tokens.pureWhite,
-    borderWidth: 1,
-    borderColor: tokens.stoneBorder,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   headerTitleBlock: {
     gap: 1,
@@ -534,7 +745,7 @@ const styles = StyleSheet.create({
   telemetryKicker: {
     fontSize: 11,
     fontWeight: '600',
-    color: tokens.ashGray,
+    color: tokens.warmGray,
     letterSpacing: 0.5,
   },
   weightBadge: {
@@ -670,11 +881,39 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
     position: 'relative',
+    ...(Platform.OS === 'web'
+      ? { userSelect: 'none', WebkitTouchCallout: 'none' }
+      : {}),
+  },
+  photoCardSelected: {
+    borderWidth: 2.5,
+    borderColor: tokens.cyanSignal,
   },
   photoImg: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  photoSelectedTint: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(59, 166, 241, 0.18)',
+  },
+  selectionCheckCircle: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(12, 10, 9, 0.4)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectionCheckCircleActive: {
+    backgroundColor: tokens.cyanSignal,
+    borderColor: '#ffffff',
   },
   photoWeightBadge: {
     position: 'absolute',
@@ -711,7 +950,7 @@ const styles = StyleSheet.create({
     bottom: 16,
     right: 20,
     minHeight: 46,
-    backgroundColor: tokens.cyanSignal,
+    backgroundColor: tokens.cyanEdge,
     borderRadius: tokens.radiusPill,
     paddingHorizontal: 20,
     flexDirection: 'row',
@@ -730,12 +969,9 @@ const styles = StyleSheet.create({
         elevation: 5,
       },
       web: {
-        boxShadow: '0 4px 14px rgba(59, 166, 241, 0.35)',
+        boxShadow: '0 4px 14px rgba(3, 105, 161, 0.28)',
       },
     }),
-  },
-  fabHomeState: {
-    backgroundColor: tokens.soot,
   },
   fabPillText: {
     color: '#ffffff',
@@ -808,7 +1044,7 @@ const styles = StyleSheet.create({
     color: tokens.warmGray,
   },
   btnPrimary: {
-    backgroundColor: tokens.cyanSignal,
+    backgroundColor: tokens.cyanEdge,
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: tokens.radiusInput,

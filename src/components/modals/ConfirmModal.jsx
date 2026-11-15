@@ -19,9 +19,9 @@ const tokens = {
   inkBlack: '#0c0a09',
   cyanSignal: '#3ba6f1',
   cyanEdge: '#3398e1',
-  negativeRed: '#e54d2e',
-  negativeWash: 'rgba(229, 77, 46, 0.08)',
-  negativeBorder: 'rgba(229, 77, 46, 0.22)',
+  negativeRed: '#c8371b',
+  negativeWash: 'rgba(200, 55, 27, 0.08)',
+  negativeBorder: 'rgba(200, 55, 27, 0.24)',
   skyWash: 'rgba(59, 166, 241, 0.1)',
 };
 

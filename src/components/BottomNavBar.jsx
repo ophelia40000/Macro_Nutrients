@@ -27,9 +27,9 @@ const DOCK_COLORS = {
   activeIcon: '#0284c7',
   activeLabel: '#0369a1',
   inactiveInk: '#78716c',
+  dangerInk: '#c8371b',
 };
 
-/** Renders domain-matched icons for each top-level tab across iOS, Android, and Web. */
 function TabIcon({ id, active }) {
   const color = active ? DOCK_COLORS.activeIcon : DOCK_COLORS.inactiveInk;
 
@@ -83,13 +83,14 @@ function TabIcon({ id, active }) {
   }
 }
 
-/** Floating tonal sky-wash bottom navigation dock with sliding active pill. */
 export default function BottomNavBar({
   currentView,
   onNavigate,
   isFramed = false,
   isAndroidWeb = false,
+  selectionActions = null,
 }) {
+  const isSelectionBarActive = Boolean(selectionActions && selectionActions.count > 0);
   const activeNavIndex = BOTTOM_NAV_ITEMS.findIndex(
     (item) => item.id === currentView
   );
@@ -200,6 +201,44 @@ export default function BottomNavBar({
     outputRange: [0, tabWidth * (BOTTOM_NAV_ITEMS.length - 1)],
   });
 
+  const selectionItems = isSelectionBarActive
+    ? [
+        {
+          key: 'cancel',
+          label: 'Cancel',
+          iconName: 'close-circle-outline',
+          iconSize: 20,
+          color: DOCK_COLORS.inactiveInk,
+          labelStyle: styles.tabLabelInactive,
+          hoverBg: 'rgba(120, 113, 108, 0.1)',
+          onPress: selectionActions.onCancel,
+          accessibilityLabel: 'Cancel photo selection',
+        },
+        {
+          key: 'send',
+          label: 'Send',
+          iconName: 'paper-plane',
+          iconSize: 18,
+          color: DOCK_COLORS.activeIcon,
+          labelStyle: styles.tabLabelActive,
+          hoverBg: 'rgba(2, 132, 199, 0.1)',
+          onPress: selectionActions.onShare,
+          accessibilityLabel: `Send ${selectionActions.count} selected ${selectionActions.count === 1 ? 'photo' : 'photos'}`,
+        },
+        {
+          key: 'delete',
+          label: 'Delete',
+          iconName: 'trash-bin',
+          iconSize: 18,
+          color: DOCK_COLORS.dangerInk,
+          labelStyle: styles.tabLabelDanger,
+          hoverBg: 'rgba(200, 55, 27, 0.1)',
+          onPress: selectionActions.onDelete,
+          accessibilityLabel: `Delete ${selectionActions.count} selected ${selectionActions.count === 1 ? 'photo' : 'photos'}`,
+        },
+      ]
+    : [];
+
   return (
     <View
       style={[
@@ -214,80 +253,107 @@ export default function BottomNavBar({
     >
       <View
         style={styles.dockCard}
-        accessibilityRole="tablist"
+        accessibilityRole={isSelectionBarActive ? 'toolbar' : 'tablist'}
         onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
       >
-        {tabWidth > 0 && (
-          <Animated.View
-            pointerEvents="none"
-            style={[
-              styles.slidingSlot,
-              {
-                width: tabWidth,
-                opacity: pillOpacity,
-                transform: [{ translateX: pillTranslateX }],
-              },
-            ]}
-          >
-            <View style={styles.slidingPill} />
-          </Animated.View>
-        )}
-
-        {BOTTOM_NAV_ITEMS.map((item, idx) => {
-          const isActive = currentView === item.id;
-          const iconScale = reduceMotion
-            ? 1
-            : iconLiftAnims[idx].interpolate({
-                inputRange: [0, 1],
-                outputRange: [1, 1.1],
-              });
-          const iconTranslateY = reduceMotion
-            ? 0
-            : iconLiftAnims[idx].interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, -1],
-              });
-
-          return (
+        {isSelectionBarActive ? (
+          selectionItems.map((action) => (
             <Pressable
-              key={item.id}
-              onPress={() => onNavigate(item.id)}
-              onPressIn={() => handlePressIn(idx)}
-              onPressOut={() => handlePressOut(idx)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: isActive }}
-              accessibilityLabel={item.ariaLabel}
-              style={styles.tabPressable}
+              key={action.key}
+              onPress={action.onPress}
+              accessibilityRole="button"
+              accessibilityLabel={action.accessibilityLabel}
+              style={({ pressed, hovered }) => [
+                styles.tabPressable,
+                Platform.OS === 'web' && styles.webClickable,
+                (pressed || hovered) && { backgroundColor: action.hoverBg },
+                pressed && !reduceMotion && styles.actionPressed,
+                pressed && reduceMotion && styles.actionPressedReduced,
+              ]}
             >
+              <View style={styles.tabInner}>
+                <Ionicons name={action.iconName} size={action.iconSize} color={action.color} />
+                <Text numberOfLines={1} style={[styles.tabLabel, action.labelStyle]}>
+                  {action.label}
+                </Text>
+              </View>
+            </Pressable>
+          ))
+        ) : (
+          <>
+            {tabWidth > 0 && (
               <Animated.View
+                pointerEvents="none"
                 style={[
-                  styles.tabInner,
-                  { transform: [{ scale: pressScaleAnims[idx] }] },
+                  styles.slidingSlot,
+                  {
+                    width: tabWidth,
+                    opacity: pillOpacity,
+                    transform: [{ translateX: pillTranslateX }],
+                  },
                 ]}
               >
-                <Animated.View
-                  style={{
-                    transform: [
-                      { scale: iconScale },
-                      { translateY: iconTranslateY },
-                    ],
-                  }}
-                >
-                  <TabIcon id={item.id} active={isActive} />
-                </Animated.View>
-                <Text
-                  numberOfLines={1}
-                  style={[
-                    styles.tabLabel,
-                    isActive ? styles.tabLabelActive : styles.tabLabelInactive,
-                  ]}
-                >
-                  {item.label}
-                </Text>
+                <View style={styles.slidingPill} />
               </Animated.View>
-            </Pressable>
-          );
-        })}
+            )}
+
+            {BOTTOM_NAV_ITEMS.map((item, idx) => {
+              const isActive = currentView === item.id;
+              const iconScale = reduceMotion
+                ? 1
+                : iconLiftAnims[idx].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [1, 1.1],
+                  });
+              const iconTranslateY = reduceMotion
+                ? 0
+                : iconLiftAnims[idx].interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, -1],
+                  });
+
+              return (
+                <Pressable
+                  key={item.id}
+                  onPress={() => onNavigate(item.id)}
+                  onPressIn={() => handlePressIn(idx)}
+                  onPressOut={() => handlePressOut(idx)}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isActive }}
+                  accessibilityLabel={item.ariaLabel}
+                  style={[styles.tabPressable, Platform.OS === 'web' && styles.webClickable]}
+                >
+                  <Animated.View
+                    style={[
+                      styles.tabInner,
+                      { transform: [{ scale: pressScaleAnims[idx] }] },
+                    ]}
+                  >
+                    <Animated.View
+                      style={{
+                        transform: [
+                          { scale: iconScale },
+                          { translateY: iconTranslateY },
+                        ],
+                      }}
+                    >
+                      <TabIcon id={item.id} active={isActive} />
+                    </Animated.View>
+                    <Text
+                      numberOfLines={1}
+                      style={[
+                        styles.tabLabel,
+                        isActive ? styles.tabLabelActive : styles.tabLabelInactive,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </Animated.View>
+                </Pressable>
+              );
+            })}
+          </>
+        )}
       </View>
     </View>
   );
@@ -336,6 +402,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: 10,
   },
+  webClickable: {
+    cursor: 'pointer',
+  },
+  actionPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.95 }],
+  },
+  actionPressedReduced: {
+    opacity: 0.85,
+  },
   tabInner: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -353,6 +429,10 @@ const styles = StyleSheet.create({
   tabLabelInactive: {
     fontWeight: '500',
     color: DOCK_COLORS.inactiveInk,
+  },
+  tabLabelDanger: {
+    fontWeight: '600',
+    color: DOCK_COLORS.dangerInk,
   },
   viewfinderBox: {
     width: 19,

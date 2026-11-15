@@ -1,12 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Pressable,
-  Animated,
   StatusBar,
   Platform,
 } from 'react-native';
@@ -49,10 +47,7 @@ export default function DashboardScreen({
 }) {
   const [isAdjustGoalsOpen, setIsAdjustGoalsOpen] = useState(false);
   const [isBurnOpen, setIsBurnOpen] = useState(false);
-  const [isRadialActive, setIsRadialActive] = useState(false);
   const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
-
-  const radialAnim = useRef(new Animated.Value(0)).current;
 
   const remainingCal = goals.calories - consumed.calories + burnedCalories;
   const remainingCarb = goals.carbs - consumed.carbs;
@@ -76,77 +71,9 @@ export default function DashboardScreen({
   const carbsShare = totalMacroKcal > 0 ? (carbsKcal / totalMacroKcal) * 100 : 33.3;
   const fatShare = totalMacroKcal > 0 ? Math.max(0, 100 - proteinShare - carbsShare) : 33.4;
 
-  const openRadialMenu = () => {
-    setIsRadialActive(true);
-    Animated.spring(radialAnim, {
-      toValue: 1,
-      tension: 65,
-      friction: 7,
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const closeRadialMenu = () => {
-    Animated.timing(radialAnim, {
-      toValue: 0,
-      duration: 180,
-      useNativeDriver: true,
-    }).start(() => setIsRadialActive(false));
-  };
-
-  const handleFabPress = () => {
-    if (isRadialActive) {
-      closeRadialMenu();
-    } else {
-      setIsAdjustGoalsOpen(true);
-    }
-  };
-
-  const handleFabLongPress = () => {
-    if (isRadialActive) {
-      closeRadialMenu();
-    } else {
-      openRadialMenu();
-    }
-  };
-
   const handleProfileLongPress = () => {
     setIsProfileOptionsOpen(true);
   };
-
-  const cameraTranslateX = radialAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -68],
-  });
-  const cameraTranslateY = radialAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -58],
-  });
-  const cameraScale = radialAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-  const cameraOpacity = radialAnim.interpolate({
-    inputRange: [0, 0.2, 1],
-    outputRange: [0, 0.6, 1],
-  });
-
-  const exerciseTranslateX = radialAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 0],
-  });
-  const exerciseTranslateY = radialAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -78],
-  });
-  const exerciseScale = radialAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-  const exerciseOpacity = radialAnim.interpolate({
-    inputRange: [0, 0.2, 1],
-    outputRange: [0, 0.6, 1],
-  });
 
   return (
     <View style={styles.viewContainer}>
@@ -481,86 +408,16 @@ export default function DashboardScreen({
         </TouchableOpacity>
       </ScrollView>
 
-      {isRadialActive && (
-        <Pressable
-          style={StyleSheet.absoluteFillObject}
-          onPress={closeRadialMenu}
-          accessibilityLabel="Close quick action menu"
-        />
-      )}
-
-      <View style={styles.fabContainer} pointerEvents="box-none">
-        <Animated.View
-          style={[
-            styles.miniFabWrapper,
-            {
-              transform: [
-                { translateX: cameraTranslateX },
-                { translateY: cameraTranslateY },
-                { scale: cameraScale },
-              ],
-              opacity: cameraOpacity,
-            },
-          ]}
-          pointerEvents="box-none"
-        >
-          <TouchableOpacity
-            style={styles.miniFab}
-            activeOpacity={0.8}
-            disabled={!isRadialActive}
-            onPress={() => {
-              closeRadialMenu();
-              onNavigate('view-camera');
-            }}
-            accessibilityLabel="Open Camera Progress"
-            accessibilityRole="button"
-          >
-            <Feather name="camera" size={20} color={tokens.inkBlack} />
-          </TouchableOpacity>
-        </Animated.View>
-
-        <Animated.View
-          style={[
-            styles.miniFabWrapper,
-            {
-              transform: [
-                { translateX: exerciseTranslateX },
-                { translateY: exerciseTranslateY },
-                { scale: exerciseScale },
-              ],
-              opacity: exerciseOpacity,
-            },
-          ]}
-          pointerEvents="box-none"
-        >
-          <TouchableOpacity
-            style={styles.miniFab}
-            activeOpacity={0.8}
-            disabled={!isRadialActive}
-            onPress={() => {
-              closeRadialMenu();
-              onNavigate('view-exercise');
-            }}
-            accessibilityLabel="Open Workout Log"
-            accessibilityRole="button"
-          >
-            <Feather name="activity" size={20} color={tokens.cyanSignal} />
-          </TouchableOpacity>
-        </Animated.View>
-
-        <TouchableOpacity
-          style={styles.pillFab}
-          activeOpacity={0.88}
-          onPress={handleFabPress}
-          onLongPress={handleFabLongPress}
-          delayLongPress={280}
-          accessibilityLabel="Adjust Nutrition and Calorie Goals"
-          accessibilityRole="button"
-        >
-          <Feather name={isRadialActive ? 'x' : 'sliders'} size={17} color="#ffffff" />
-          <Text style={styles.pillFabText}>{isRadialActive ? 'Close' : 'Adjust Goals'}</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={styles.pillFab}
+        activeOpacity={0.88}
+        onPress={() => setIsAdjustGoalsOpen(true)}
+        accessibilityLabel="Adjust Nutrition and Calorie Goals"
+        accessibilityRole="button"
+      >
+        <Feather name="sliders" size={17} color="#ffffff" />
+        <Text style={styles.pillFabText}>Adjust Goals</Text>
+      </TouchableOpacity>
 
       <AdjustGoalsModal
         visible={isAdjustGoalsOpen}
@@ -1017,38 +874,10 @@ const styles = StyleSheet.create({
     color: tokens.warmGray,
     fontWeight: '400',
   },
-  fabContainer: {
+  pillFab: {
     position: 'absolute',
     bottom: 14,
     right: 16,
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    zIndex: 30,
-    overflow: 'visible',
-  },
-  miniFabWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'transparent',
-    overflow: 'hidden',
-    zIndex: 35,
-  },
-  miniFab: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: tokens.pureWhite,
-    borderWidth: 1,
-    borderColor: tokens.stoneBorder,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  pillFab: {
     minHeight: 44,
     backgroundColor: '#0369a1',
     borderRadius: tokens.radiusPill,
