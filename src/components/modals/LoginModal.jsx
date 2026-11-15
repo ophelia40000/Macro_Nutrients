@@ -75,7 +75,7 @@ export default function LoginModal({ visible, onClose, onLogin }) {
                 <Feather name="activity" size={28} color={tokens.cyanEdge} />
               </View>
 
-              <Text style={styles.title}>Macro Journey</Text>
+              <Text style={styles.title}>Macro Nutrients</Text>
               <Text style={styles.sub}>
                 Sign in with Google to load and sync your saved macros, workouts, and progress photos
               </Text>

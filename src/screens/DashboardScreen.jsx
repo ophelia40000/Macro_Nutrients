@@ -158,7 +158,7 @@ export default function DashboardScreen({
             <Feather name="activity" size={16} color={tokens.cyanSignal} />
           </View>
           <View style={styles.brandInfoRow}>
-            <Text style={styles.appTitle}>Macro Journey</Text>
+            <Text style={styles.appTitle}>Macro Nutrients</Text>
             <View style={styles.datePill}>
               <Text style={styles.datePillText}>
                 {`Today · ${new Date().toLocaleDateString('en-GB', {

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Macro Journey",
-    "slug": "macro-journey",
+    "name": "Macro Nutrients",
+    "slug": "macro-nutrients",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,8 +21,8 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "name": "Macro Journey",
-      "shortName": "MacroJourney",
+      "name": "Macro Nutrients",
+      "shortName": "Macro Nutrients",
       "description": "Daily nutrition, caloric budget, workout, and physique progress tracker.",
       "themeColor": "#fafaf9",
       "backgroundColor": "#fafaf9"
