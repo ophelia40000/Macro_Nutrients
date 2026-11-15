@@ -475,7 +475,14 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        Platform.OS === 'web' &&
+          currentView !== 'view-profile' &&
+          styles.webContainerNoBottomSafeArea,
+      ]}
+    >
       <StatusBar barStyle="dark-content" backgroundColor="#fafaf9" />
       {screenContent}
     </SafeAreaView>
@@ -503,6 +510,9 @@ const styles = StyleSheet.create({
         : Platform.OS === 'android'
           ? StatusBar.currentHeight
           : 0,
+  },
+  webContainerNoBottomSafeArea: {
+    paddingBottom: 0,
   },
   center: {
     justifyContent: 'center',

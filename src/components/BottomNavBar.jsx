@@ -204,7 +204,7 @@ export default function BottomNavBar({
         styles.outerWrapper,
         Platform.OS === 'web' &&
           !isFramed && {
-            paddingBottom: 'clamp(10px, calc(env(safe-area-inset-bottom, 0px) * 0.5), 17px)',
+            paddingBottom: 'clamp(8px, calc(env(safe-area-inset-bottom, 0px) * 0.65), 22px)',
           },
         isFramed && styles.outerWrapperFramed,
       ]}
@@ -296,8 +296,8 @@ const styles = StyleSheet.create({
     backgroundColor: DOCK_COLORS.surface,
     borderTopWidth: 1,
     borderTopColor: DOCK_COLORS.border,
-    paddingTop: 6,
-    paddingBottom: Platform.OS === 'ios' ? 8 : 10,
+    paddingTop: 5,
+    paddingBottom: Platform.OS === 'ios' ? 8 : 8,
   },
   outerWrapperFramed: {
     paddingTop: 4,

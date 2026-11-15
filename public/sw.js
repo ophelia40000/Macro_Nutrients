@@ -1,4 +1,4 @@
-const CACHE_NAME = 'macro-journey-pwa-v5';
+const CACHE_NAME = 'macro-journey-pwa-v6';
 const APP_SHELL_URLS = [
   '/',
   '/manifest.json',
