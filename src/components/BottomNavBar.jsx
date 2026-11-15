@@ -20,9 +20,7 @@ export const BOTTOM_NAV_ITEMS = [
 
 const DOCK_COLORS = {
   surface: '#ffffff',
-  border: 'rgba(0, 0, 0, 0.06)',
-  canvasDefault: '#fafaf9',
-  canvasAlt: '#fcfbfa',
+  border: '#e8e6e5',
   activePillBg: '#e0f2fe',
   activePillBorder: 'rgba(59, 166, 241, 0.25)',
   activeIcon: '#0284c7',
@@ -192,7 +190,7 @@ export default function BottomNavBar({
     }).start();
   };
 
-  const innerTrackWidth = Math.max(0, trackWidth - 8);
+  const innerTrackWidth = Math.max(0, trackWidth - 12);
   const tabWidth = innerTrackWidth / BOTTOM_NAV_ITEMS.length;
 
   const pillTranslateX = slideAnim.interpolate({
@@ -200,21 +198,15 @@ export default function BottomNavBar({
     outputRange: [0, tabWidth * (BOTTOM_NAV_ITEMS.length - 1)],
   });
 
-  const dockBackdrop =
-    currentView === 'view-dashboard' || currentView === 'view-diary'
-      ? DOCK_COLORS.canvasDefault
-      : DOCK_COLORS.canvasAlt;
-
   return (
     <View
       style={[
         styles.outerWrapper,
         Platform.OS === 'web' &&
           !isFramed && {
-            paddingBottom: 'clamp(10px, calc(env(safe-area-inset-bottom, 0px) * 0.5), 18px)',
+            paddingBottom: 'clamp(4px, calc(env(safe-area-inset-bottom, 0px) * 0.35), 12px)',
           },
         isFramed && styles.outerWrapperFramed,
-        { backgroundColor: dockBackdrop },
       ]}
     >
       <View
@@ -301,71 +293,42 @@ export default function BottomNavBar({
 const styles = StyleSheet.create({
   outerWrapper: {
     width: '100%',
-    paddingHorizontal: 12,
-    paddingTop: 6,
-    paddingBottom: Platform.OS === 'ios' ? 8 : 12,
+    backgroundColor: DOCK_COLORS.surface,
+    borderTopWidth: 1,
+    borderTopColor: DOCK_COLORS.border,
+    paddingTop: 4,
+    paddingBottom: Platform.OS === 'ios' ? 6 : 4,
   },
   outerWrapperFramed: {
     paddingTop: 4,
-    paddingBottom: 6,
+    paddingBottom: 4,
   },
   dockCard: {
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: DOCK_COLORS.surface,
-    borderRadius: 18,
-    padding: 4,
-    borderWidth: 1,
-    borderColor: DOCK_COLORS.border,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#0c0a09',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.06,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 4,
-      },
-      web: {
-        boxShadow: '0 4px 16px rgba(12, 10, 9, 0.06)',
-      },
-    }),
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   slidingSlot: {
     position: 'absolute',
-    top: 4,
-    bottom: 4,
-    left: 4,
+    top: 2,
+    bottom: 2,
+    left: 6,
     paddingHorizontal: 2,
   },
   slidingPill: {
     flex: 1,
-    borderRadius: 14,
+    borderRadius: 12,
     backgroundColor: DOCK_COLORS.activePillBg,
     borderWidth: 1,
     borderColor: DOCK_COLORS.activePillBorder,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#3ba6f1',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.14,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 1,
-      },
-      web: {
-        boxShadow: '0 2px 8px rgba(59, 166, 241, 0.14)',
-      },
-    }),
   },
   tabPressable: {
     flex: 1,
     minWidth: 44,
-    height: 46,
-    borderRadius: 14,
+    height: 44,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 10,
