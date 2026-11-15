@@ -10,6 +10,7 @@ import {
   TextInput,
   StatusBar,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -34,6 +35,12 @@ const tokens = {
   radiusPill: 9999,
   radiusInput: 6,
 };
+
+function getPhotoSortTime(photo) {
+  const parsed = photo?.date ? new Date(photo.date).getTime() : NaN;
+  if (!isNaN(parsed)) return parsed;
+  return Number(photo?.id) || 0;
+}
 
 function formatPhotoDate(dateVal) {
   if (!dateVal) return '--';
@@ -65,16 +72,31 @@ export default function CameraScreen({
   const [isFabHomeState, setIsFabHomeState] = useState(false);
   const [isCaptureSheetOpen, setIsCaptureSheetOpen] = useState(false);
   const [noticeState, setNoticeState] = useState(null);
+  const [galleryWidth, setGalleryWidth] = useState(0);
+  const { width: windowWidth } = useWindowDimensions();
 
-  const displayPhotos = Array.isArray(photos) ? photos : [];
-  const latestWeight =
-    displayPhotos[displayPhotos.length - 1]?.weight ?? currentWeight ?? 70;
+  const availableGalleryWidth =
+    galleryWidth > 0
+      ? galleryWidth
+      : Math.max(240, Math.min(windowWidth, 480) - 40);
+  const galleryCols = availableGalleryWidth >= 300 ? 3 : 2;
+  const galleryGap = 10;
+  const photoCardWidth = Math.floor(
+    (availableGalleryWidth - galleryGap * (galleryCols - 1)) / galleryCols
+  );
+  const photoCardHeight = Math.round(photoCardWidth * 1.32);
+
+  const rawPhotos = Array.isArray(photos) ? photos : [];
+  const displayPhotos = [...rawPhotos].sort(
+    (a, b) => getPhotoSortTime(b) - getPhotoSortTime(a)
+  );
+  const latestWeight = displayPhotos[0]?.weight ?? currentWeight ?? 70;
   const totalPhotos = displayPhotos.length;
   const milestoneDays = (() => {
     if (displayPhotos.length === 0) return 0;
     const timestamps = displayPhotos
-      .map((p) => new Date(p.date).getTime())
-      .filter((t) => !isNaN(t));
+      .map((p) => getPhotoSortTime(p))
+      .filter((t) => t > 0);
     if (timestamps.length < 2) return 1;
     const spanMs = Math.max(...timestamps) - Math.min(...timestamps);
     return Math.max(1, Math.round(spanMs / (1000 * 60 * 60 * 24)));
@@ -177,7 +199,7 @@ export default function CameraScreen({
       weight: parseFloat(customWeight || currentWeight) || 70.0,
     };
     if (setPhotos) {
-      setPhotos([...displayPhotos, newPhoto]);
+      setPhotos([newPhoto, ...rawPhotos]);
     }
     if (onAddPhotoCloud) {
       onAddPhotoCloud(newPhoto);
@@ -277,7 +299,15 @@ export default function CameraScreen({
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.galleryRow}>
+          <View
+            style={[styles.galleryRow, { gap: galleryGap }]}
+            onLayout={(e) => {
+              const nextWidth = Math.floor(e.nativeEvent.layout.width);
+              if (nextWidth > 0 && nextWidth !== galleryWidth) {
+                setGalleryWidth(nextWidth);
+              }
+            }}
+          >
             {displayPhotos.map((photo) => {
               const imgSrc =
                 photo.image ||
@@ -285,7 +315,10 @@ export default function CameraScreen({
               return (
                 <TouchableOpacity
                   key={photo.id}
-                  style={styles.photoCard}
+                  style={[
+                    styles.photoCard,
+                    { width: photoCardWidth, height: photoCardHeight },
+                  ]}
                   activeOpacity={0.88}
                   onPress={() => handleOpenFullscreen(photo)}
                   accessibilityLabel={`View photo taken on ${photo.date}`}
@@ -295,7 +328,15 @@ export default function CameraScreen({
                   <View style={styles.photoWeightBadge}>
                     <Text style={styles.photoWeightText}>{photo.weight} kg</Text>
                   </View>
-                  <Text style={styles.photoDateText}>{formatPhotoDate(photo.date)}</Text>
+                  <View style={styles.photoDateFooter}>
+                    <Text
+                      style={styles.photoDateText}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {formatPhotoDate(photo.date)}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -328,6 +369,7 @@ export default function CameraScreen({
       <FullscreenPhotoModal
         visible={isFullscreenOpen}
         onClose={() => setIsFullscreenOpen(false)}
+        photos={displayPhotos}
         photo={selectedPhoto}
         onDelete={handleDeletePhoto}
       />
@@ -617,12 +659,11 @@ const styles = StyleSheet.create({
   },
   galleryRow: {
     flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
   },
   photoCard: {
-    flex: 1,
-    height: 135,
     borderRadius: 12,
     backgroundColor: '#1c1917',
     overflow: 'hidden',
@@ -639,7 +680,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     left: 6,
-    backgroundColor: 'rgba(0, 0, 0, 0.72)',
+    backgroundColor: 'rgba(12, 10, 9, 0.72)',
     paddingHorizontal: 6,
     paddingVertical: 2.5,
     borderRadius: tokens.radiusPill,
@@ -650,18 +691,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.2,
   },
-  photoDateText: {
+  photoDateFooter: {
     position: 'absolute',
-    bottom: 6,
-    left: 6,
-    right: 6,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(12, 10, 9, 0.62)',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  photoDateText: {
     color: '#ffffff',
     fontSize: 10.5,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: -0.1,
-    textShadowColor: 'rgba(0, 0, 0, 0.95)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   fabPill: {
     position: 'absolute',

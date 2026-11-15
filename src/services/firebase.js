@@ -98,7 +98,13 @@ export async function loadUserCloudData(uid) {
     });
   });
 
-  photos.sort((a, b) => Number(a.id) - Number(b.id));
+  photos.sort((a, b) => {
+    const timeA = a.date ? new Date(a.date).getTime() : NaN;
+    const timeB = b.date ? new Date(b.date).getTime() : NaN;
+    const valA = !isNaN(timeA) ? timeA : Number(a.id) || 0;
+    const valB = !isNaN(timeB) ? timeB : Number(b.id) || 0;
+    return valB - valA;
+  });
 
   if (!userSnap.exists()) {
     return { exists: false, data: null, photos };
