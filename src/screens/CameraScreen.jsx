@@ -56,6 +56,55 @@ function formatPhotoDate(dateVal) {
   return str;
 }
 
+function normalizeImageMime(mimeType) {
+  if (!mimeType || !mimeType.startsWith('image/')) return 'image/jpeg';
+  return mimeType === 'image/jpg' ? 'image/jpeg' : mimeType;
+}
+
+function dataUriToBlob(dataUri) {
+  const [header, payload] = dataUri.split(',');
+  if (!payload) return null;
+  const mimeMatch = header?.match(/data:([^;]+)/i);
+  const mimeType = normalizeImageMime(mimeMatch?.[1]);
+  const isBase64 = /;base64/i.test(header || '');
+  if (!isBase64) {
+    return new Blob([decodeURIComponent(payload)], { type: mimeType });
+  }
+  const binary = atob(payload);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mimeType });
+}
+
+async function copyTextToClipboard(text) {
+  if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall back to execCommand when async calls consume user activation.
+    }
+  }
+  if (typeof document === 'undefined') return false;
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  let copied = false;
+  try {
+    copied = document.execCommand('copy');
+  } catch {
+    copied = false;
+  }
+  document.body.removeChild(textarea);
+  return copied;
+}
+
 export default function CameraScreen({
   photos = [],
   setPhotos,
@@ -251,100 +300,107 @@ export default function CameraScreen({
           .join(', ')})`;
 
     if (Platform.OS === 'web') {
-      try {
-        if (typeof navigator !== 'undefined' && navigator.share) {
-          const files = (
-            await Promise.all(
-              selectedPhotos.map(async (item, idx) => {
-                const uri = item?.imagePath || item?.image?.uri || '';
-                if (!uri) return null;
-                try {
-                  const response = await fetch(uri);
-                  const blob = await response.blob();
-                  return new File(
-                    [blob],
-                    `progress-photo-${item.id || idx + 1}.jpg`,
-                    { type: blob.type || 'image/jpeg' }
-                  );
-                } catch {
-                  return null;
-                }
-              })
-            )
-          ).filter(Boolean);
+      const uris = selectedPhotos
+        .map((item) => item?.imagePath || item?.image?.uri || '')
+        .filter(Boolean);
 
-          if (
-            files.length > 0 &&
-            navigator.canShare &&
-            navigator.canShare({ files })
-          ) {
-            await navigator.share({
-              title: isSingle ? 'Progress Photo' : 'Progress Photos',
-              text: shareText,
-              files,
-            });
+      const files = (
+        await Promise.all(
+          selectedPhotos.map(async (item, idx) => {
+            const uri = item?.imagePath || item?.image?.uri || '';
+            if (!uri) return null;
+            const filename = `progress-photo-${item.id || idx + 1}.jpg`;
+            try {
+              if (/^data:/i.test(uri)) {
+                const blob = dataUriToBlob(uri);
+                return blob ? new File([blob], filename, { type: blob.type }) : null;
+              }
+              const response = await fetch(uri, { mode: 'cors' });
+              if (!response.ok) return null;
+              const blob = await response.blob();
+              return new File([blob], filename, {
+                type: normalizeImageMime(blob.type),
+              });
+            } catch {
+              return null;
+            }
+          })
+        )
+      ).filter(Boolean);
+
+      const externalLinks = uris.filter((uri) => /^https?:\/\//i.test(uri));
+
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        if (files.length > 0 && navigator.canShare?.({ files })) {
+          const filePayload = {
+            title: isSingle ? 'Progress Photo' : 'Progress Photos',
+            text: shareText,
+            files,
+          };
+          const payload = navigator.canShare(filePayload)
+            ? filePayload
+            : { files };
+          try {
+            await navigator.share(payload);
             clearSelection();
             return;
-          }
-
-          if (isSingle && /^https?:\/\//i.test(firstUri)) {
-            await navigator.share({
-              title: 'Progress Photo',
-              text: shareText,
-              url: firstUri,
-            });
-            clearSelection();
-            return;
+          } catch (err) {
+            if (err?.name === 'AbortError') return;
           }
         }
-      } catch (err) {
-        if (err?.name === 'AbortError') return;
+
+        if (externalLinks.length > 0) {
+          try {
+            if (isSingle) {
+              await navigator.share({
+                title: 'Progress Photo',
+                text: shareText,
+                url: externalLinks[0],
+              });
+            } else {
+              await navigator.share({
+                title: 'Progress Photos',
+                text: `${shareText}\n${externalLinks.join('\n')}`,
+              });
+            }
+            clearSelection();
+            return;
+          } catch (err) {
+            if (err?.name === 'AbortError') return;
+          }
+        }
       }
 
-      const downloadablePhotos = selectedPhotos.filter((item) =>
-        /^(data:|blob:)/i.test(item?.imagePath || item?.image?.uri || '')
-      );
-      if (typeof document !== 'undefined' && downloadablePhotos.length > 0) {
-        downloadablePhotos.forEach((item, idx) => {
-          const uri = item.imagePath || item.image?.uri;
+      if (typeof document !== 'undefined' && files.length > 0) {
+        files.forEach((file) => {
+          const objectUrl = URL.createObjectURL(file);
           const link = document.createElement('a');
-          link.href = uri;
-          link.download = `progress-photo-${item.id || idx + 1}.jpg`;
+          link.href = objectUrl;
+          link.download = file.name;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
         });
         clearSelection();
         setNoticeState({
           title:
-            downloadablePhotos.length === 1
+            files.length === 1
               ? 'Photo Downloaded'
-              : `${downloadablePhotos.length} Photos Downloaded`,
+              : `${files.length} Photos Downloaded`,
           message:
-            'Direct sharing is unavailable in this browser, so the selected photos were downloaded instead.',
+            'Direct file sharing is unavailable in this browser, so the selected photos were downloaded instead.',
         });
         return;
       }
 
-      const externalLinks = selectedPhotos
-        .map((item) => item?.imagePath || item?.image?.uri || '')
-        .filter((uri) => /^https?:\/\//i.test(uri));
-      if (
-        typeof navigator !== 'undefined' &&
-        navigator.clipboard?.writeText &&
-        externalLinks.length > 0
-      ) {
-        try {
-          await navigator.clipboard.writeText(externalLinks.join('\n'));
-          clearSelection();
-          setNoticeState({
-            title:
-              externalLinks.length === 1 ? 'Link Copied' : 'Links Copied',
-            message: 'Selected photo links copied to your clipboard.',
-          });
-          return;
-        } catch {
-        }
+      if (externalLinks.length > 0 && (await copyTextToClipboard(externalLinks.join('\n')))) {
+        clearSelection();
+        setNoticeState({
+          title: externalLinks.length === 1 ? 'Link Copied' : 'Links Copied',
+          message: 'Selected photo links copied to your clipboard.',
+        });
+        return;
       }
 
       setNoticeState({
