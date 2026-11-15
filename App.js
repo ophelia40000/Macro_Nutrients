@@ -343,6 +343,18 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const isProfile = currentView === 'view-profile';
+    const isNarrowMobile = typeof window !== 'undefined' && window.innerWidth <= 480;
+    const bg =
+      !isProfile && isNarrowMobile
+        ? 'linear-gradient(to bottom, #fafaf9 0%, #fafaf9 50%, #ffffff 50%, #ffffff 100%)'
+        : '#fafaf9';
+    document.documentElement.style.background = bg;
+    document.body.style.background = bg;
+  }, [currentView]);
+
   const consumed = {
     calories: entries.reduce((sum, item) => sum + (Number(item.calories) || 0), 0),
     protein: entries.reduce((sum, item) => sum + (Number(item.protein) || 0), 0),
@@ -364,7 +376,13 @@ export default function App() {
     new URLSearchParams(window.location.search).get('frame') === 'true';
 
   const screenContent = (
-    <View style={[styles.appContainer, isFrame && styles.frameInnerContent]}>
+    <View
+      style={[
+        styles.appContainer,
+        currentView !== 'view-profile' && styles.appContainerWhiteBottom,
+        isFrame && styles.frameInnerContent,
+      ]}
+    >
       <View style={styles.screenArea}>
         {currentView === 'view-dashboard' && (
           <DashboardScreen
@@ -478,7 +496,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#fafaf9',
+    backgroundColor: Platform.OS === 'web' ? 'transparent' : '#fafaf9',
     paddingTop:
       Platform.OS === 'web'
         ? 'env(safe-area-inset-top)'
@@ -497,9 +515,13 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#fafaf9',
   },
+  appContainerWhiteBottom: {
+    backgroundColor: '#ffffff',
+  },
   screenArea: {
     flex: 1,
     minHeight: 0,
     overflow: 'hidden',
+    backgroundColor: '#fafaf9',
   },
 });

@@ -13,6 +13,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#fafaf9" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Macro Journey" />
     <meta name="application-name" content="Macro Journey" />
@@ -20,16 +21,19 @@
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
       html {
-        height: 100%;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100%;
         background-color: #fafaf9;
       }
       body {
         margin: 0;
         position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        min-height: 100dvh;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
         background-color: #fafaf9;
         overflow: hidden;
         overscroll-behavior-y: contain;
@@ -39,9 +43,10 @@
         display: flex;
         flex-direction: column;
         position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
       }
     </style>
   </head>
