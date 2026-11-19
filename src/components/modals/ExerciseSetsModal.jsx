@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: tokens.inkBlack,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
   },
   unitSuffix: {
@@ -412,13 +412,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
     borderRadius: tokens.radiusInput,
-    height: 40,
+    height: 44,
     justifyContent: 'center',
   },
   repsInput: {
     textAlign: 'center',
     color: tokens.inkBlack,
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   btnDeleteSet: {

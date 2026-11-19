@@ -1198,8 +1198,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     minWidth: 0,
-    height: 42,
-    fontSize: 13,
+    height: 44,
+    fontSize: 16,
     color: tokens.inkBlack,
   },
   unitSuffix: {

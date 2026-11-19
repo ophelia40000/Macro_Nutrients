@@ -30,6 +30,7 @@
         background-color: #fafaf9;
         touch-action: manipulation;
         -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
       }
       body {
         margin: 0;
@@ -85,8 +86,11 @@
       }
       input,
       textarea,
+      select,
       [contenteditable="true"] {
         min-width: 0;
+        font-size: 16px;
+        touch-action: manipulation;
         user-select: text;
         -webkit-user-select: text;
       }

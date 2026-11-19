@@ -66,17 +66,14 @@ export default function AddEntryModal({
   useEffect(() => {
     if (visible) {
       setErrorMsg('');
-      if (presets.length === 0) {
-        setSelectedPreset(null);
-        setSearch('');
-      } else if (!selectedPreset || !presets.some((p) => p.name === selectedPreset.name)) {
-        setSelectedPreset(presets[0]);
-        setSearch(presets[0].name);
-      }
+      setSelectedPreset(null);
+      setSearch('');
+      setWeight('');
+      setShowDropdown(false);
     } else {
       setShowDropdown(false);
     }
-  }, [visible, presets]);
+  }, [visible]);
 
   const weightPreviewRes = parseNumericInput(weight, { allowEmpty: true, emptyValue: 0, min: 0 });
   const factor = (weightPreviewRes.valid ? weightPreviewRes.value : 0) / 100;
@@ -143,6 +140,9 @@ export default function AddEntryModal({
     setCarbs('');
     setFat('');
     setWeight('');
+    setSelectedPreset(null);
+    setSearch('');
+    setShowDropdown(false);
     setErrorMsg('');
     onClose();
   };
@@ -155,7 +155,7 @@ export default function AddEntryModal({
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
-          <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
+          <TouchableWithoutFeedback>
             <View style={styles.dialogBox}>
               <View style={styles.dialogHeader}>
                 <Text style={styles.dialogTitle}>Add Food Entry</Text>
@@ -223,12 +223,46 @@ export default function AddEntryModal({
                           value={search}
                           onChangeText={(text) => {
                             setSearch(text);
+                            if (selectedPreset && text !== selectedPreset.name) {
+                              setSelectedPreset(null);
+                            }
+                            setErrorMsg('');
                             setShowDropdown(true);
                           }}
                           onFocus={() => setShowDropdown(true)}
                           placeholder="Search food presets"
                           placeholderTextColor={tokens.ashGray}
+                          accessibilityLabel="Search food presets"
                         />
+                        {search.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => {
+                              setSearch('');
+                              setSelectedPreset(null);
+                              setErrorMsg('');
+                              setShowDropdown(true);
+                            }}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            accessibilityLabel="Clear preset search"
+                            accessibilityRole="button"
+                          >
+                            <Feather name="x" size={15} color={tokens.ashGray} />
+                          </TouchableOpacity>
+                        )}
+                        {presets.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => setShowDropdown((prev) => !prev)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            accessibilityLabel="Toggle food presets dropdown"
+                            accessibilityRole="button"
+                          >
+                            <Feather
+                              name={showDropdown ? 'chevron-up' : 'chevron-down'}
+                              size={16}
+                              color={tokens.warmGray}
+                            />
+                          </TouchableOpacity>
+                        )}
                       </View>
 
                       {showDropdown && filteredPresets.length > 0 && (
@@ -245,6 +279,7 @@ export default function AddEntryModal({
                                 onPress={() => {
                                   setSelectedPreset(item);
                                   setSearch(item.name);
+                                  setErrorMsg('');
                                   setShowDropdown(false);
                                 }}
                               >
@@ -266,6 +301,7 @@ export default function AddEntryModal({
                       <TextInput
                         style={styles.input}
                         value={weight}
+                        onFocus={() => setShowDropdown(false)}
                         onChangeText={(v) => { setWeight(v); setErrorMsg(''); }}
                         placeholder="Portion weight"
                         placeholderTextColor={tokens.ashGray}
@@ -517,7 +553,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: tokens.inkBlack,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
   },
   inputRow: {

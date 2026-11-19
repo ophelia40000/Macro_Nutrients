@@ -793,7 +793,8 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 13.5,
+    minWidth: 0,
+    fontSize: 16,
     fontWeight: '500',
     color: tokens.inkBlack,
     paddingVertical: 0,

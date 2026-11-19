@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
     color: tokens.inkBlack,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '400',
   },
   unitSuffix: {
