@@ -208,7 +208,7 @@ export default function ProfileScreen({
                   style={styles.input}
                   value={heightVal}
                   onChangeText={(v) => { setHeightVal(v); setErrorMsg(''); }}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
                   accessibilityLabel="Height in cm"
@@ -229,7 +229,7 @@ export default function ProfileScreen({
                   style={styles.input}
                   value={weightVal}
                   onChangeText={(v) => { setWeightVal(v); setErrorMsg(''); }}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
                   accessibilityLabel="Weight in kg"
@@ -307,7 +307,7 @@ export default function ProfileScreen({
                   style={styles.input}
                   value={neckVal}
                   onChangeText={(v) => { setNeckVal(v); setErrorMsg(''); }}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
                   accessibilityLabel="Neck circumference in cm"
@@ -323,7 +323,7 @@ export default function ProfileScreen({
                   style={styles.input}
                   value={waistVal}
                   onChangeText={(v) => { setWaistVal(v); setErrorMsg(''); }}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
                   accessibilityLabel="Waist circumference in cm"
@@ -341,7 +341,7 @@ export default function ProfileScreen({
                   style={styles.input}
                   value={hipVal}
                   onChangeText={(v) => { setHipVal(v); setErrorMsg(''); }}
-                  keyboardType="numeric"
+                  keyboardType="decimal-pad"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
                   accessibilityLabel="Hip circumference in cm"
@@ -396,6 +396,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.stoneCanvas,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
+    ...(Platform.OS === 'web' ? { touchAction: 'none', overscrollBehavior: 'none' } : {}),
   },
   backBtn: {
     width: 44,

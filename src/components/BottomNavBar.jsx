@@ -367,6 +367,7 @@ const styles = StyleSheet.create({
     borderTopColor: DOCK_COLORS.border,
     paddingTop: 5,
     paddingBottom: Platform.OS === 'ios' ? 8 : 8,
+    ...(Platform.OS === 'web' ? { touchAction: 'none', overscrollBehavior: 'none' } : {}),
   },
   outerWrapperFramed: {
     paddingTop: 4,

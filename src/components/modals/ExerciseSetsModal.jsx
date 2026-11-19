@@ -182,7 +182,7 @@ export default function ExerciseSetsModal({
                     onChangeText={handleGlobalWeightChange}
                     placeholder="Load for all sets"
                     placeholderTextColor={tokens.ashGray}
-                    keyboardType="numeric"
+                    keyboardType="decimal-pad"
                     accessibilityLabel="Universal weight load input"
                   />
                   <Text style={styles.unitSuffix}>kg</Text>

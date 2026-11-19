@@ -269,7 +269,7 @@ export default function AddEntryModal({
                         onChangeText={(v) => { setWeight(v); setErrorMsg(''); }}
                         placeholder="Portion weight"
                         placeholderTextColor={tokens.ashGray}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         accessibilityLabel="Portion weight in grams"
                       />
                       <Text style={styles.unitSuffix}>g</Text>
@@ -320,7 +320,7 @@ export default function AddEntryModal({
                         onChangeText={(v) => { setCal(v); setErrorMsg(''); }}
                         placeholder="Energy value"
                         placeholderTextColor={tokens.ashGray}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         accessibilityLabel="Energy value in kcal"
                       />
                       <Text style={styles.unitSuffix}>kcal</Text>
@@ -339,7 +339,7 @@ export default function AddEntryModal({
                           onChangeText={(v) => { setProtein(v); setErrorMsg(''); }}
                           placeholder="Protein"
                           placeholderTextColor={tokens.ashGray}
-                          keyboardType="numeric"
+                          keyboardType="decimal-pad"
                           accessibilityLabel="Protein in grams"
                         />
                         <Text style={styles.unitSuffix}>g</Text>
@@ -357,7 +357,7 @@ export default function AddEntryModal({
                           onChangeText={(v) => { setCarbs(v); setErrorMsg(''); }}
                           placeholder="Carbs"
                           placeholderTextColor={tokens.ashGray}
-                          keyboardType="numeric"
+                          keyboardType="decimal-pad"
                           accessibilityLabel="Carbs in grams"
                         />
                         <Text style={styles.unitSuffix}>g</Text>
@@ -372,7 +372,7 @@ export default function AddEntryModal({
                         onChangeText={(v) => { setFat(v); setErrorMsg(''); }}
                         placeholder="Healthy Fats"
                         placeholderTextColor={tokens.ashGray}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         accessibilityLabel="Healthy fats in grams"
                       />
                       <Text style={styles.unitSuffix}>g</Text>

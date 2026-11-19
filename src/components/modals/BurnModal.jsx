@@ -89,7 +89,7 @@ export default function BurnModal({
                     onChangeText={(text) => { setVal(text); setErrorMsg(''); }}
                     placeholder="Active energy"
                     placeholderTextColor={tokens.ashGray}
-                    keyboardType="numeric"
+                    keyboardType="decimal-pad"
                     accessibilityLabel="Burned calories input"
                   />
                   <Text style={styles.unitSuffix}>kcal</Text>

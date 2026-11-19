@@ -113,7 +113,7 @@ export default function AdjustGoalsModal({ visible, onClose, goals, onSave }) {
                     onChangeText={(v) => { setCal(v); setErrorMsg(''); }}
                     placeholder="Total Calories"
                     placeholderTextColor={tokens.ashGray}
-                    keyboardType="numeric"
+                    keyboardType="decimal-pad"
                     accessibilityLabel="Daily Calories Input"
                   />
                   <Text style={styles.unitSuffix}>kcal</Text>
@@ -134,7 +134,7 @@ export default function AdjustGoalsModal({ visible, onClose, goals, onSave }) {
                         onChangeText={(v) => { setProt(v); setErrorMsg(''); }}
                         placeholder="Protein"
                         placeholderTextColor={tokens.ashGray}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         accessibilityLabel="Protein Target Input"
                       />
                       <Text style={styles.unitSuffix}>g</Text>
@@ -155,7 +155,7 @@ export default function AdjustGoalsModal({ visible, onClose, goals, onSave }) {
                         onChangeText={(v) => { setCarbs(v); setErrorMsg(''); }}
                         placeholder="Carbs"
                         placeholderTextColor={tokens.ashGray}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         accessibilityLabel="Carbohydrates Target Input"
                       />
                       <Text style={styles.unitSuffix}>g</Text>
@@ -172,7 +172,7 @@ export default function AdjustGoalsModal({ visible, onClose, goals, onSave }) {
                     onChangeText={(v) => { setFat(v); setErrorMsg(''); }}
                     placeholder="Healthy Fats"
                     placeholderTextColor={tokens.ashGray}
-                    keyboardType="numeric"
+                    keyboardType="decimal-pad"
                     accessibilityLabel="Healthy Fats Target Input"
                   />
                   <Text style={styles.unitSuffix}>g</Text>

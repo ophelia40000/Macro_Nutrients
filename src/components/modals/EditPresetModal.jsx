@@ -141,7 +141,7 @@ export default function EditPresetModal({
                       onChangeText={setCal}
                       placeholder="Calories"
                       placeholderTextColor={tokens.ashGray}
-                      keyboardType="numeric"
+                      keyboardType="decimal-pad"
                       accessibilityLabel="Calories Input"
                     />
                     <Text style={styles.unitSuffix}>kcal</Text>
@@ -161,7 +161,7 @@ export default function EditPresetModal({
                         onChangeText={(v) => { setProt(v); setErrorMsg(''); }}
                         placeholder="Protein"
                         placeholderTextColor={tokens.ashGray}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         accessibilityLabel="Protein Input"
                       />
                       <Text style={styles.unitSuffix}>g</Text>
@@ -179,7 +179,7 @@ export default function EditPresetModal({
                         onChangeText={(v) => { setCarbs(v); setErrorMsg(''); }}
                         placeholder="Carbs"
                         placeholderTextColor={tokens.ashGray}
-                        keyboardType="numeric"
+                        keyboardType="decimal-pad"
                         accessibilityLabel="Carbs Input"
                       />
                       <Text style={styles.unitSuffix}>g</Text>
@@ -194,7 +194,7 @@ export default function EditPresetModal({
                       onChangeText={(v) => { setFat(v); setErrorMsg(''); }}
                       placeholder="Fats"
                       placeholderTextColor={tokens.ashGray}
-                      keyboardType="numeric"
+                      keyboardType="decimal-pad"
                       accessibilityLabel="Fat Input"
                     />
                     <Text style={styles.unitSuffix}>g</Text>

@@ -537,7 +537,9 @@ export default function CameraScreen({
             <View style={styles.colSeparator} />
             <View style={styles.kpiCol}>
               <Text style={[styles.kpiValue, { color: tokens.cyanEdge }]}>
-                {Math.round(currentWeight || 70)}
+                {Number.isInteger(Number(currentWeight || 70))
+                  ? Number(currentWeight || 70)
+                  : Number(Number(currentWeight || 70).toFixed(1))}
                 <Text style={styles.kpiUnit}>kg</Text>
               </Text>
               <Text style={styles.kpiLabel}>Active Target</Text>
@@ -736,7 +738,7 @@ export default function CameraScreen({
                 onChangeText={(text) => { setInputWeight(text); setUrlErrorMsg(''); }}
                 placeholder="Weight"
                 placeholderTextColor={tokens.ashGray}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
                 accessibilityLabel="Body weight at capture in kg"
               />
               <Text style={styles.unitSuffix}>kg</Text>
@@ -841,6 +843,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.stoneCanvas,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
+    ...(Platform.OS === 'web' ? { touchAction: 'none', overscrollBehavior: 'none' } : {}),
   },
   headerTitleBlock: {
     gap: 1,

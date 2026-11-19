@@ -611,6 +611,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.stoneCanvas,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
+    ...(Platform.OS === 'web' ? { touchAction: 'none', overscrollBehavior: 'none' } : {}),
   },
   brandCluster: {
     flexDirection: 'row',
