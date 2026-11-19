@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
 
 const tokens = {
   pureWhite: '#ffffff',
@@ -17,12 +18,12 @@ const tokens = {
   stoneMuted: '#d6d3d1',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
   negativeRed: '#c8371b',
   negativeWash: 'rgba(200, 55, 27, 0.08)',
   negativeBorder: 'rgba(200, 55, 27, 0.24)',
-  skyWash: 'rgba(59, 166, 241, 0.1)',
+  skyWash: 'rgba(3, 105, 161, 0.1)',
 };
 
 /**
@@ -40,6 +41,7 @@ export default function ConfirmModal({
   actions,
   hideCancel = false,
 }) {
+  useModalEscape(visible, onClose);
   const hasActionList = Array.isArray(actions) && actions.length > 0;
 
   return (

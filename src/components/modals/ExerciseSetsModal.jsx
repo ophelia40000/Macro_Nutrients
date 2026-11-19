@@ -12,6 +12,9 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
+import FormErrorBanner from '../FormErrorBanner';
+import { parseNumericInput } from '../../utils/validation';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -21,10 +24,10 @@ const tokens = {
   ashGray: '#a8a29e',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
-  negativeRed: '#e54d2e',
-  negativeWash: 'rgba(229, 77, 46, 0.08)',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
+  negativeRed: '#c8371d',
+  negativeWash: 'rgba(200, 55, 29, 0.08)',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -48,9 +51,13 @@ export default function ExerciseSetsModal({
 }) {
   const [globalWeight, setGlobalWeight] = useState('');
   const [sets, setSets] = useState([{ weight: '', reps: '' }]);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useModalEscape(visible, onClose);
 
   useEffect(() => {
     if (visible && exercise) {
+      setErrorMsg('');
       const today = getLocalDateStr();
       const todayEntry = exercise.history?.find((h) => h.date === today);
       const lastEntry = exercise.history?.length
@@ -59,10 +66,10 @@ export default function ExerciseSetsModal({
 
       if (todayEntry && todayEntry.sets && todayEntry.sets.length > 0) {
         setSets(todayEntry.sets.map((s) => ({ weight: s.weight, reps: s.reps })));
-        setGlobalWeight(todayEntry.sets[0]?.weight ? todayEntry.sets[0].weight.toString() : '');
+        setGlobalWeight(todayEntry.sets[0]?.weight !== undefined ? todayEntry.sets[0].weight.toString() : '');
       } else if (lastEntry && lastEntry.sets && lastEntry.sets.length > 0) {
         setSets(lastEntry.sets.map((s) => ({ weight: s.weight, reps: s.reps })));
-        setGlobalWeight(lastEntry.sets[0]?.weight ? lastEntry.sets[0].weight.toString() : '');
+        setGlobalWeight(lastEntry.sets[0]?.weight !== undefined ? lastEntry.sets[0].weight.toString() : '');
       } else {
         setSets([{ weight: '', reps: '' }]);
         setGlobalWeight('');
@@ -72,22 +79,25 @@ export default function ExerciseSetsModal({
 
   const handleGlobalWeightChange = (val) => {
     setGlobalWeight(val);
-    const num = parseFloat(val) || '';
-    setSets(sets.map((s) => ({ ...s, weight: num })));
+    setErrorMsg('');
+    setSets(sets.map((s) => ({ ...s, weight: val })));
   };
 
   const handleRepsChange = (index, val) => {
+    setErrorMsg('');
     const next = [...sets];
     next[index] = { ...next[index], reps: val };
     setSets(next);
   };
 
   const handleAddSet = () => {
+    setErrorMsg('');
     const lastSet = sets[sets.length - 1] || { weight: globalWeight, reps: '' };
     setSets([...sets, { weight: lastSet.weight || globalWeight, reps: lastSet.reps }]);
   };
 
   const handleDeleteSet = (index) => {
+    setErrorMsg('');
     if (sets.length === 1) {
       setSets([{ weight: globalWeight, reps: '' }]);
       return;
@@ -98,20 +108,50 @@ export default function ExerciseSetsModal({
   };
 
   const handleSave = () => {
-    const gWeight = parseFloat(globalWeight) || 0;
-    const cleanSets = sets
-      .map((s) => ({
-        weight: parseFloat(s.weight) || gWeight || 0,
-        reps: parseInt(s.reps, 10) || 0,
-      }))
-      .filter((s) => s.reps > 0 || s.weight > 0);
+    const gWeightRes = parseNumericInput(globalWeight, {
+      allowEmpty: true,
+      emptyValue: 0,
+      min: 0,
+    });
+    if (!gWeightRes.valid) {
+      setErrorMsg('Weight load must be 0 or a positive number.');
+      return;
+    }
 
-    onSaveSets(exercise.id, cleanSets.length > 0 ? cleanSets : [{ weight: gWeight, reps: 0 }]);
+    const parsedSets = [];
+    for (let i = 0; i < sets.length; i += 1) {
+      const repRes = parseNumericInput(sets[i].reps, {
+        allowEmpty: true,
+        emptyValue: 0,
+        min: 0,
+        integer: true,
+      });
+      if (!repRes.valid) {
+        setErrorMsg(`Set #${i + 1} reps must be a whole number of 0 or more.`);
+        return;
+      }
+      if (repRes.value > 0) {
+        parsedSets.push({
+          weight: gWeightRes.value,
+          reps: repRes.value,
+        });
+      }
+    }
+
+    if (parsedSets.length === 0) {
+      setErrorMsg('Enter at least 1 repetition for a set before saving.');
+      return;
+    }
+
+    setErrorMsg('');
+    onSaveSets(exercise.id, parsedSets);
     onClose();
   };
 
+  if (!visible || !exercise) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -204,6 +244,8 @@ export default function ExerciseSetsModal({
                   <Feather name="plus" size={14} color={tokens.inkBlack} />
                   <Text style={styles.btnAddSetText}>Add Next Set</Text>
                 </TouchableOpacity>
+
+                <FormErrorBanner message={errorMsg} />
 
                 <View style={styles.actionRow}>
                   <TouchableOpacity
@@ -314,6 +356,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     color: tokens.inkBlack,
     fontSize: 14,
     fontWeight: '400',
@@ -322,6 +365,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: tokens.warmGray,
+    flexShrink: 0,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -332,7 +376,7 @@ const styles = StyleSheet.create({
     borderBottomColor: tokens.stoneBorder,
   },
   tableHeaderTitle: {
-    color: tokens.ashGray,
+    color: tokens.warmGray,
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.6,
@@ -378,9 +422,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   btnDeleteSet: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: tokens.stoneCanvas,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
@@ -392,7 +436,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
     borderRadius: tokens.radiusPill,
-    height: 38,
+    minHeight: 44,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

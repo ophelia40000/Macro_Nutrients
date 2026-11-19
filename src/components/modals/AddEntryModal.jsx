@@ -11,6 +11,9 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
+import FormErrorBanner from '../FormErrorBanner';
+import { parseNumericInput } from '../../utils/validation';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -21,15 +24,23 @@ const tokens = {
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
   soot: '#1c1917',
-  skyWash: '#c1e1f7',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  skyWash: '#e0f2fe',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
   radiusPill: 9999,
   radiusInput: 6,
 };
+
+function getLocalDateStr() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 export default function AddEntryModal({
   visible,
@@ -48,10 +59,17 @@ export default function AddEntryModal({
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useModalEscape(visible, onClose);
 
   useEffect(() => {
     if (visible) {
-      if (presets.length > 0 && !selectedPreset) {
+      setErrorMsg('');
+      if (presets.length === 0) {
+        setSelectedPreset(null);
+        setSearch('');
+      } else if (!selectedPreset || !presets.some((p) => p.name === selectedPreset.name)) {
         setSelectedPreset(presets[0]);
         setSearch(presets[0].name);
       }
@@ -60,28 +78,53 @@ export default function AddEntryModal({
     }
   }, [visible, presets]);
 
-  const factor = (parseFloat(weight) || 0) / 100;
+  const weightPreviewRes = parseNumericInput(weight, { allowEmpty: true, emptyValue: 0, min: 0 });
+  const factor = (weightPreviewRes.valid ? weightPreviewRes.value : 0) / 100;
   const previewCal = selectedPreset ? (selectedPreset.calories * factor).toFixed(1) : '0.0';
   const previewProt = selectedPreset ? (selectedPreset.protein * factor).toFixed(1) : '0.0';
   const previewCarbs = selectedPreset ? (selectedPreset.carbs * factor).toFixed(1) : '0.0';
   const previewFat = selectedPreset ? (selectedPreset.fat * factor).toFixed(1) : '0.0';
 
   const handleAdd = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateStr();
     if (tab === 'manual') {
-      if (!name.trim()) return;
+      if (!name.trim()) {
+        setErrorMsg('Enter a food name.');
+        return;
+      }
+      const calRes = parseNumericInput(cal, { allowEmpty: true, emptyValue: 0, min: 0 });
+      const protRes = parseNumericInput(protein, { allowEmpty: true, emptyValue: 0, min: 0 });
+      const carbRes = parseNumericInput(carbs, { allowEmpty: true, emptyValue: 0, min: 0 });
+      const fatRes = parseNumericInput(fat, { allowEmpty: true, emptyValue: 0, min: 0 });
+      if (!calRes.valid || !protRes.valid || !carbRes.valid || !fatRes.valid) {
+        setErrorMsg('Calories and macronutrients must be 0 or positive numbers.');
+        return;
+      }
+
       onAddEntry({
         id: Date.now().toString(),
         name: name.trim(),
-        calories: parseFloat(cal) || 0,
-        protein: parseFloat(protein) || 0,
-        carbs: parseFloat(carbs) || 0,
-        fat: parseFloat(fat) || 0,
+        calories: calRes.value,
+        protein: protRes.value,
+        carbs: carbRes.value,
+        fat: fatRes.value,
         date: today,
       });
     } else {
-      if (!selectedPreset) return;
-      const w = parseFloat(weight) || 100;
+      if (!selectedPreset) {
+        setErrorMsg(
+          presets.length === 0
+            ? 'No presets saved yet. Switch to Manual or add a preset first.'
+            : 'Select a food preset.'
+        );
+        return;
+      }
+      const wRes = parseNumericInput(weight, { allowEmpty: true, emptyValue: 100, min: 0.1, allowZero: false });
+      if (!wRes.valid) {
+        setErrorMsg('Enter a valid portion weight greater than 0g.');
+        return;
+      }
+      const w = wRes.value;
       const f = w / 100;
       onAddEntry({
         id: Date.now().toString(),
@@ -100,6 +143,7 @@ export default function AddEntryModal({
     setCarbs('');
     setFat('');
     setWeight('');
+    setErrorMsg('');
     onClose();
   };
 
@@ -108,7 +152,7 @@ export default function AddEntryModal({
   );
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
@@ -122,7 +166,7 @@ export default function AddEntryModal({
                 <TouchableOpacity
                   style={[styles.tabBtn, tab === 'preset' && styles.tabBtnActive]}
                   activeOpacity={0.8}
-                  onPress={() => setTab('preset')}
+                  onPress={() => { setTab('preset'); setErrorMsg(''); }}
                   accessibilityLabel="Preset Mode"
                   accessibilityRole="button"
                 >
@@ -144,7 +188,7 @@ export default function AddEntryModal({
                 <TouchableOpacity
                   style={[styles.tabBtn, tab === 'manual' && styles.tabBtnActive]}
                   activeOpacity={0.8}
-                  onPress={() => setTab('manual')}
+                  onPress={() => { setTab('manual'); setErrorMsg(''); }}
                   accessibilityLabel="Manual Mode"
                   accessibilityRole="button"
                 >
@@ -217,18 +261,25 @@ export default function AddEntryModal({
                       <MaterialCommunityIcons
                         name="scale-bathroom"
                         size={16}
-                        color={tokens.ashGray}
+                        color={tokens.warmGray}
                       />
                       <TextInput
                         style={styles.input}
                         value={weight}
-                        onChangeText={setWeight}
+                        onChangeText={(v) => { setWeight(v); setErrorMsg(''); }}
                         placeholder="Portion weight"
                         placeholderTextColor={tokens.ashGray}
                         keyboardType="numeric"
+                        accessibilityLabel="Portion weight in grams"
                       />
                       <Text style={styles.unitSuffix}>g</Text>
                     </View>
+
+                    {presets.length === 0 && (
+                      <Text style={styles.emptyPresetHint}>
+                        No presets saved yet. Switch to Manual or create one from Presets.
+                      </Text>
+                    )}
 
                     <View style={styles.previewBox}>
                       <View style={styles.previewTitle}>
@@ -250,31 +301,33 @@ export default function AddEntryModal({
                 ) : (
                   <View>
                     <View style={styles.inputGroup}>
-                      <Feather name="type" size={16} color={tokens.ashGray} />
+                      <Feather name="type" size={16} color={tokens.warmGray} />
                       <TextInput
                         style={styles.input}
                         value={name}
-                        onChangeText={setName}
+                        onChangeText={(v) => { setName(v); setErrorMsg(''); }}
                         placeholder="Food name"
                         placeholderTextColor={tokens.ashGray}
+                        accessibilityLabel="Food name"
                       />
                     </View>
 
                     <View style={styles.inputGroup}>
-                      <Ionicons name="flame-outline" size={16} color={tokens.ashGray} />
+                      <Ionicons name="flame-outline" size={16} color={tokens.warmGray} />
                       <TextInput
                         style={styles.input}
                         value={cal}
-                        onChangeText={setCal}
+                        onChangeText={(v) => { setCal(v); setErrorMsg(''); }}
                         placeholder="Energy value"
                         placeholderTextColor={tokens.ashGray}
                         keyboardType="numeric"
+                        accessibilityLabel="Energy value in kcal"
                       />
                       <Text style={styles.unitSuffix}>kcal</Text>
                     </View>
 
                     <View style={styles.inputRow}>
-                      <View style={[styles.inputGroup, { flex: 1 }]}>
+                      <View style={[styles.inputGroup, { flex: 1, minWidth: 0 }]}>
                         <MaterialCommunityIcons
                           name="food-drumstick"
                           size={16}
@@ -283,15 +336,16 @@ export default function AddEntryModal({
                         <TextInput
                           style={styles.input}
                           value={protein}
-                          onChangeText={setProtein}
+                          onChangeText={(v) => { setProtein(v); setErrorMsg(''); }}
                           placeholder="Protein"
                           placeholderTextColor={tokens.ashGray}
                           keyboardType="numeric"
+                          accessibilityLabel="Protein in grams"
                         />
                         <Text style={styles.unitSuffix}>g</Text>
                       </View>
 
-                      <View style={[styles.inputGroup, { flex: 1 }]}>
+                      <View style={[styles.inputGroup, { flex: 1, minWidth: 0 }]}>
                         <MaterialCommunityIcons
                           name="bread-slice"
                           size={16}
@@ -300,29 +354,33 @@ export default function AddEntryModal({
                         <TextInput
                           style={styles.input}
                           value={carbs}
-                          onChangeText={setCarbs}
+                          onChangeText={(v) => { setCarbs(v); setErrorMsg(''); }}
                           placeholder="Carbs"
                           placeholderTextColor={tokens.ashGray}
                           keyboardType="numeric"
+                          accessibilityLabel="Carbs in grams"
                         />
                         <Text style={styles.unitSuffix}>g</Text>
                       </View>
                     </View>
 
                     <View style={styles.inputGroup}>
-                      <Ionicons name="water-outline" size={16} color={tokens.ashGray} />
+                      <Ionicons name="water-outline" size={16} color={tokens.warmGray} />
                       <TextInput
                         style={styles.input}
                         value={fat}
-                        onChangeText={setFat}
+                        onChangeText={(v) => { setFat(v); setErrorMsg(''); }}
                         placeholder="Healthy Fats"
                         placeholderTextColor={tokens.ashGray}
                         keyboardType="numeric"
+                        accessibilityLabel="Healthy fats in grams"
                       />
                       <Text style={styles.unitSuffix}>g</Text>
                     </View>
                   </View>
                 )}
+
+                <FormErrorBanner message={errorMsg} />
               </ScrollView>
 
               <View style={styles.dialogActions}>
@@ -453,9 +511,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
+    minWidth: 0,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     color: tokens.inkBlack,
     fontSize: 14,
     fontWeight: '400',
@@ -467,7 +527,14 @@ const styles = StyleSheet.create({
   unitSuffix: {
     color: tokens.warmGray,
     fontSize: 12,
-    fontWeight: '400',
+    fontWeight: '500',
+    flexShrink: 0,
+  },
+  emptyPresetHint: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: tokens.warmGray,
+    marginBottom: 10,
   },
   autocompleteDropdown: {
     position: 'absolute',
@@ -562,6 +629,8 @@ const styles = StyleSheet.create({
     borderTopColor: tokens.stoneCanvas,
   },
   btnCancel: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: tokens.radiusPill,
@@ -572,11 +641,11 @@ const styles = StyleSheet.create({
   btnCancelText: {
     color: tokens.inkBlack,
     fontSize: 13,
-    fontWeight: '400',
+    fontWeight: '500',
   },
   btnAdd: {
     backgroundColor: tokens.cyanSignal,
-    height: 40,
+    minHeight: 44,
     paddingHorizontal: 18,
     borderRadius: tokens.radiusPill,
     flexDirection: 'row',

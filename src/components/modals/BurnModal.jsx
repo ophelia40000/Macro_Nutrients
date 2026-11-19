@@ -11,6 +11,9 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
+import FormErrorBanner from '../FormErrorBanner';
+import { parseNumericInput } from '../../utils/validation';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -20,8 +23,8 @@ const tokens = {
   ashGray: '#a8a29e',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -36,20 +39,30 @@ export default function BurnModal({
   onSave,
 }) {
   const [val, setVal] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useModalEscape(visible, onClose);
 
   useEffect(() => {
     if (visible) {
       setVal(burnedCalories > 0 ? burnedCalories.toString() : '');
+      setErrorMsg('');
     }
   }, [visible, burnedCalories]);
 
   const handleSave = () => {
-    onSave(parseFloat(val) || 0);
+    const res = parseNumericInput(val, { allowEmpty: true, emptyValue: 0, min: 0 });
+    if (!res.valid) {
+      setErrorMsg('Enter 0 or a positive number of burned calories.');
+      return;
+    }
+    setErrorMsg('');
+    onSave(res.value);
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -73,7 +86,7 @@ export default function BurnModal({
                   <TextInput
                     style={styles.input}
                     value={val}
-                    onChangeText={setVal}
+                    onChangeText={(text) => { setVal(text); setErrorMsg(''); }}
                     placeholder="Active energy"
                     placeholderTextColor={tokens.ashGray}
                     keyboardType="numeric"
@@ -82,15 +95,17 @@ export default function BurnModal({
                   <Text style={styles.unitSuffix}>kcal</Text>
                   {val.length > 0 && (
                     <TouchableOpacity
-                      onPress={() => setVal('')}
+                      onPress={() => { setVal(''); setErrorMsg(''); }}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       accessibilityLabel="Clear burned calories"
                       accessibilityRole="button"
                     >
-                      <Feather name="x" size={14} color={tokens.ashGray} />
+                      <Feather name="x" size={14} color={tokens.warmGray} />
                     </TouchableOpacity>
                   )}
                 </View>
+
+                <FormErrorBanner message={errorMsg} />
 
                 <View style={styles.actionRow}>
                   <TouchableOpacity
@@ -195,12 +210,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
+    minWidth: 0,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     color: tokens.inkBlack,
     fontSize: 14,
     fontWeight: '400',
@@ -210,6 +227,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: tokens.warmGray,
     marginRight: 4,
+    flexShrink: 0,
   },
   actionRow: {
     flexDirection: 'row',

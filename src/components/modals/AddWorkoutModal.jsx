@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -21,8 +22,8 @@ const tokens = {
   ashGray: '#a8a29e',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -38,6 +39,8 @@ export default function AddWorkoutModal({
 }) {
   const [region, setRegion] = useState('');
   const [name, setName] = useState('');
+
+  useModalEscape(visible, onClose);
 
   const handleContinue = () => {
     if (!name.trim()) return;
@@ -57,8 +60,10 @@ export default function AddWorkoutModal({
     }
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -276,6 +281,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     color: tokens.inkBlack,
     fontSize: 14,
     fontWeight: '400',

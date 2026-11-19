@@ -43,6 +43,7 @@ export default function FullscreenPhotoModal({
   onClose,
   photos = [],
   photo,
+  onDeletePhoto,
 }) {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [carouselWidth, setCarouselWidth] = useState(0);
@@ -136,13 +137,7 @@ export default function FullscreenPhotoModal({
       }
     };
     window.addEventListener('keydown', handleKeyDown);
-    const slideSlots = [
-    prevPhoto ? { item: prevPhoto, offset: -slideWidth, key: `prev-${prevPhoto.id}` } : null,
-    { item: currentPhoto, offset: 0, key: `curr-${currentPhoto.id}` },
-    nextPhoto ? { item: nextPhoto, offset: slideWidth, key: `next-${nextPhoto.id}` } : null,
-  ].filter(Boolean);
-
-  return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [visible, animateStep, onClose]);
 
   // Single-item PanResponder guarantees one swipe moves at most one photo.
@@ -236,13 +231,26 @@ export default function FullscreenPhotoModal({
             <Feather name="x" size={20} color="#ffffff" />
           </TouchableOpacity>
 
-          {photoList.length > 1 && (
-            <View style={styles.counterBadge}>
-              <Text style={styles.counterText}>
-                {safeIndex + 1} / {photoList.length}
-              </Text>
-            </View>
-          )}
+          <View style={styles.topRightGroup}>
+            {photoList.length > 1 && (
+              <View style={styles.counterBadge}>
+                <Text style={styles.counterText}>
+                  {safeIndex + 1} / {photoList.length}
+                </Text>
+              </View>
+            )}
+            {onDeletePhoto && (
+              <TouchableOpacity
+                style={styles.btnClose}
+                onPress={() => onDeletePhoto(currentPhoto)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                accessibilityLabel="Delete photo"
+                accessibilityRole="button"
+              >
+                <Feather name="trash-2" size={18} color="#ffffff" />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         <View style={styles.centerStage}>
@@ -323,6 +331,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     zIndex: 10,
+  },
+  topRightGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   btnClose: {
     width: 48,

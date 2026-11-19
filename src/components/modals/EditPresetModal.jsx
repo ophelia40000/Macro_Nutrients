@@ -12,6 +12,9 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
+import FormErrorBanner from '../FormErrorBanner';
+import { parseNumericInput } from '../../utils/validation';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -21,8 +24,8 @@ const tokens = {
   ashGray: '#a8a29e',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -41,6 +44,9 @@ export default function EditPresetModal({
   const [prot, setProt] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useModalEscape(visible, onClose);
 
   useEffect(() => {
     if (preset) {
@@ -56,27 +62,41 @@ export default function EditPresetModal({
       setCarbs('');
       setFat('');
     }
+    setErrorMsg('');
   }, [preset, visible]);
 
-  const pNum = parseFloat(prot) || 0;
-  const cNum = parseFloat(carbs) || 0;
-  const fNum = parseFloat(fat) || 0;
+  const pRes = parseNumericInput(prot, { allowEmpty: true, emptyValue: 0, min: 0 });
+  const cRes = parseNumericInput(carbs, { allowEmpty: true, emptyValue: 0, min: 0 });
+  const fRes = parseNumericInput(fat, { allowEmpty: true, emptyValue: 0, min: 0 });
+  const calRes = parseNumericInput(cal, { allowEmpty: true, emptyValue: null, min: 0 });
+
+  const pNum = pRes.valid ? pRes.value : 0;
+  const cNum = cRes.valid ? cRes.value : 0;
+  const fNum = fRes.valid ? fRes.value : 0;
   const calculatedSum = Math.round(pNum * 4 + cNum * 4 + fNum * 9);
 
   const handleSave = () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      setErrorMsg('Enter a preset name.');
+      return;
+    }
+    if (!calRes.valid || !pRes.valid || !cRes.valid || !fRes.valid) {
+      setErrorMsg('Calories and macros must be 0 or positive numbers.');
+      return;
+    }
+    setErrorMsg('');
     onSavePreset({
       name: name.trim(),
-      calories: parseFloat(cal) || calculatedSum || 0,
-      protein: parseFloat(prot) || 0,
-      carbs: parseFloat(carbs) || 0,
-      fat: parseFloat(fat) || 0,
+      calories: calRes.value !== null ? calRes.value : calculatedSum,
+      protein: pRes.value,
+      carbs: cRes.value,
+      fat: fRes.value,
     });
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -129,7 +149,7 @@ export default function EditPresetModal({
 
                   <Text style={styles.inputLabel}>Macronutrients</Text>
                   <View style={styles.macroRow}>
-                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <View style={[styles.inputGroup, { flex: 1, minWidth: 0 }]}>
                       <MaterialCommunityIcons
                         name="food-drumstick"
                         size={16}
@@ -138,7 +158,7 @@ export default function EditPresetModal({
                       <TextInput
                         style={styles.input}
                         value={prot}
-                        onChangeText={setProt}
+                        onChangeText={(v) => { setProt(v); setErrorMsg(''); }}
                         placeholder="Protein"
                         placeholderTextColor={tokens.ashGray}
                         keyboardType="numeric"
@@ -147,7 +167,7 @@ export default function EditPresetModal({
                       <Text style={styles.unitSuffix}>g</Text>
                     </View>
 
-                    <View style={[styles.inputGroup, { flex: 1 }]}>
+                    <View style={[styles.inputGroup, { flex: 1, minWidth: 0 }]}>
                       <MaterialCommunityIcons
                         name="bread-slice"
                         size={16}
@@ -156,7 +176,7 @@ export default function EditPresetModal({
                       <TextInput
                         style={styles.input}
                         value={carbs}
-                        onChangeText={setCarbs}
+                        onChangeText={(v) => { setCarbs(v); setErrorMsg(''); }}
                         placeholder="Carbs"
                         placeholderTextColor={tokens.ashGray}
                         keyboardType="numeric"
@@ -167,11 +187,11 @@ export default function EditPresetModal({
                   </View>
 
                   <View style={styles.inputGroup}>
-                    <Ionicons name="water-outline" size={16} color={tokens.ashGray} />
+                    <Ionicons name="water-outline" size={16} color={tokens.warmGray} />
                     <TextInput
                       style={styles.input}
                       value={fat}
-                      onChangeText={setFat}
+                      onChangeText={(v) => { setFat(v); setErrorMsg(''); }}
                       placeholder="Fats"
                       placeholderTextColor={tokens.ashGray}
                       keyboardType="numeric"
@@ -179,6 +199,8 @@ export default function EditPresetModal({
                     />
                     <Text style={styles.unitSuffix}>g</Text>
                   </View>
+
+                  <FormErrorBanner message={errorMsg} />
 
                   {calculatedSum > 0 && (
                     <View style={styles.calculationPreview}>
@@ -297,9 +319,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
+    minWidth: 0,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     color: tokens.inkBlack,
     fontSize: 14,
     fontWeight: '400',
@@ -308,6 +332,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: tokens.warmGray,
+    flexShrink: 0,
   },
   macroRow: {
     flexDirection: 'row',
@@ -367,7 +392,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   btnPrimaryDisabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
   btnPrimaryText: {
     color: '#ffffff',

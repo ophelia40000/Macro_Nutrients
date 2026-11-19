@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import ConfirmModal from '../components/modals/ConfirmModal';
+import FormErrorBanner from '../components/FormErrorBanner';
+import { parseNumericInput } from '../utils/validation';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -21,9 +23,9 @@ const tokens = {
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
   soot: '#1c1917',
-  skyWash: '#c1e1f7',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  skyWash: '#e0f2fe',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -47,6 +49,7 @@ export default function ProfileScreen({
   const [waistVal, setWaistVal] = useState(goals.waist ? goals.waist.toString() : '80');
   const [hipVal, setHipVal] = useState(goals.hip ? goals.hip.toString() : '90');
   const [isSignOutConfirmOpen, setIsSignOutConfirmOpen] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     setHeightVal(goals.height ? goals.height.toString() : '170');
@@ -55,21 +58,27 @@ export default function ProfileScreen({
     setNeckVal(goals.neck ? goals.neck.toString() : '38');
     setWaistVal(goals.waist ? goals.waist.toString() : '80');
     setHipVal(goals.hip ? goals.hip.toString() : '90');
+    setErrorMsg('');
   }, [goals]);
 
   const calculateBodyFat = () => {
-    const h = parseFloat(heightVal) || 0;
-    const n = parseFloat(neckVal) || 0;
-    const wst = parseFloat(waistVal) || 0;
-    const hp = parseFloat(hipVal) || 0;
+    const hRes = parseNumericInput(heightVal, { allowZero: false });
+    const nRes = parseNumericInput(neckVal, { allowZero: false });
+    const wRes = parseNumericInput(waistVal, { allowZero: false });
+    const hpRes = parseNumericInput(hipVal, { allowZero: false });
 
-    if (h <= 0 || n <= 0 || wst <= 0) return '--%';
+    if (!hRes.valid || !nRes.valid || !wRes.valid) return '--%';
+    const h = hRes.value;
+    const n = nRes.value;
+    const wst = wRes.value;
 
     let bf = 0;
     if (gender === 'male') {
       if (wst <= n) return '--%';
       bf = 495 / (1.0324 - 0.19077 * Math.log10(wst - n) + 0.15456 * Math.log10(h)) - 450;
     } else {
+      if (!hpRes.valid) return '--%';
+      const hp = hpRes.value;
       if (wst + hp <= n) return '--%';
       bf = 495 / (1.29579 - 0.35004 * Math.log10(wst + hp - n) + 0.22100 * Math.log10(h)) - 450;
     }
@@ -83,14 +92,26 @@ export default function ProfileScreen({
   const bodyFatStr = calculateBodyFat();
 
   const handleSave = () => {
+    const hRes = parseNumericInput(heightVal, { allowZero: false });
+    const wRes = parseNumericInput(weightVal, { allowZero: false });
+    const nRes = parseNumericInput(neckVal, { allowZero: false });
+    const wstRes = parseNumericInput(waistVal, { allowZero: false });
+    const hpRes = gender === 'female' ? parseNumericInput(hipVal, { allowZero: false }) : { valid: true, value: parseFloat(hipVal) || goals.hip };
+
+    if (!hRes.valid || !wRes.valid || !nRes.valid || !wstRes.valid || !hpRes.valid) {
+      setErrorMsg('Enter valid positive numbers for height, weight, neck, waist, and hip measurements.');
+      return;
+    }
+
+    setErrorMsg('');
     setGoals({
       ...goals,
-      height: parseFloat(heightVal) || goals.height,
-      weight: parseFloat(weightVal) || goals.weight,
-      gender: gender,
-      neck: parseFloat(neckVal) || goals.neck,
-      waist: parseFloat(waistVal) || goals.waist,
-      hip: parseFloat(hipVal) || goals.hip,
+      height: hRes.value,
+      weight: wRes.value,
+      gender,
+      neck: nRes.value,
+      waist: wstRes.value,
+      hip: hpRes.value,
     });
     onNavigate('view-dashboard');
   };
@@ -186,10 +207,11 @@ export default function ProfileScreen({
                 <TextInput
                   style={styles.input}
                   value={heightVal}
-                  onChangeText={setHeightVal}
+                  onChangeText={(v) => { setHeightVal(v); setErrorMsg(''); }}
                   keyboardType="numeric"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
+                  accessibilityLabel="Height in cm"
                 />
                 <Text style={styles.unitSuffix}>cm</Text>
               </View>
@@ -206,10 +228,11 @@ export default function ProfileScreen({
                 <TextInput
                   style={styles.input}
                   value={weightVal}
-                  onChangeText={setWeightVal}
+                  onChangeText={(v) => { setWeightVal(v); setErrorMsg(''); }}
                   keyboardType="numeric"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
+                  accessibilityLabel="Weight in kg"
                 />
                 <Text style={styles.unitSuffix}>kg</Text>
               </View>
@@ -240,7 +263,7 @@ export default function ProfileScreen({
                   gender === 'male' && styles.genderBtnActive,
                 ]}
                 activeOpacity={0.8}
-                onPress={() => setGender('male')}
+                onPress={() => { setGender('male'); setErrorMsg(''); }}
                 accessibilityLabel="Select Male"
                 accessibilityRole="button"
               >
@@ -260,7 +283,7 @@ export default function ProfileScreen({
                   gender === 'female' && styles.genderBtnActive,
                 ]}
                 activeOpacity={0.8}
-                onPress={() => setGender('female')}
+                onPress={() => { setGender('female'); setErrorMsg(''); }}
                 accessibilityLabel="Select Female"
                 accessibilityRole="button"
               >
@@ -283,10 +306,11 @@ export default function ProfileScreen({
                 <TextInput
                   style={styles.input}
                   value={neckVal}
-                  onChangeText={setNeckVal}
+                  onChangeText={(v) => { setNeckVal(v); setErrorMsg(''); }}
                   keyboardType="numeric"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
+                  accessibilityLabel="Neck circumference in cm"
                 />
                 <Text style={styles.unitSuffix}>cm</Text>
               </View>
@@ -298,10 +322,11 @@ export default function ProfileScreen({
                 <TextInput
                   style={styles.input}
                   value={waistVal}
-                  onChangeText={setWaistVal}
+                  onChangeText={(v) => { setWaistVal(v); setErrorMsg(''); }}
                   keyboardType="numeric"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
+                  accessibilityLabel="Waist circumference in cm"
                 />
                 <Text style={styles.unitSuffix}>cm</Text>
               </View>
@@ -315,16 +340,19 @@ export default function ProfileScreen({
                 <TextInput
                   style={styles.input}
                   value={hipVal}
-                  onChangeText={setHipVal}
+                  onChangeText={(v) => { setHipVal(v); setErrorMsg(''); }}
                   keyboardType="numeric"
                   placeholder="0"
                   placeholderTextColor={tokens.ashGray}
+                  accessibilityLabel="Hip circumference in cm"
                 />
                 <Text style={styles.unitSuffix}>cm</Text>
               </View>
             </View>
           )}
         </View>
+
+        <FormErrorBanner message={errorMsg} style={{ marginBottom: 0 }} />
 
         <TouchableOpacity
           style={styles.btnSave}
@@ -370,9 +398,9 @@ const styles = StyleSheet.create({
     borderBottomColor: tokens.stoneBorder,
   },
   backBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: tokens.pureWhite,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
@@ -380,7 +408,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerSpacer: {
-    width: 36,
+    width: 44,
   },
   appTitle: {
     fontSize: 17,
@@ -482,12 +510,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    minHeight: 44,
     backgroundColor: tokens.stoneCanvas,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
     borderRadius: 9999,
     paddingHorizontal: 16,
-    paddingVertical: 9,
+    paddingVertical: 10,
   },
   googleConnectBtnText: {
     fontSize: 13,
@@ -525,6 +554,7 @@ const styles = StyleSheet.create({
   },
   col: {
     flex: 1,
+    minWidth: 0,
   },
   metricLabel: {
     fontSize: 12,
@@ -542,9 +572,11 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
+    minWidth: 0,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     color: tokens.inkBlack,
     fontSize: 15,
     fontWeight: '500',
@@ -552,7 +584,8 @@ const styles = StyleSheet.create({
   unitSuffix: {
     color: tokens.warmGray,
     fontSize: 13,
-    fontWeight: '400',
+    fontWeight: '500',
+    flexShrink: 0,
   },
   bfHeader: {
     flexDirection: 'row',
@@ -603,7 +636,7 @@ const styles = StyleSheet.create({
   },
   genderBtn: {
     flex: 1,
-    height: 38,
+    minHeight: 44,
     borderRadius: tokens.radiusPill,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,

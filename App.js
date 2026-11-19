@@ -37,6 +37,7 @@ import {
 } from './src/services/firebase';
 
 const GUEST_STORAGE_KEY = '@macro_journey_guest_v3';
+const GUEST_DISMISSED_KEY = '@macro_journey_guest_dismissed_v1';
 const LEGACY_STORAGE_KEYS = ['@macro_journey_state_v1', '@macro_journey_state_v2'];
 const getUserStorageKey = (uid) => `@macro_journey_user_v3_${uid}`;
 
@@ -127,7 +128,13 @@ export default function App() {
     async function loadData() {
       try {
         await AsyncStorage.multiRemove(LEGACY_STORAGE_KEYS);
-        const json = await AsyncStorage.getItem(GUEST_STORAGE_KEY);
+        const [json, guestDismissed] = await Promise.all([
+          AsyncStorage.getItem(GUEST_STORAGE_KEY),
+          AsyncStorage.getItem(GUEST_DISMISSED_KEY),
+        ]);
+        if (guestDismissed === '1') {
+          hasDismissedLoginRef.current = true;
+        }
         const today = getLocalDateStr();
         if (json) {
           const parsed = JSON.parse(json);
@@ -178,7 +185,10 @@ export default function App() {
           AsyncStorage.removeItem(GUEST_STORAGE_KEY).catch(() => { });
         }
         if (Platform.OS === 'web' && !hasDismissedLoginRef.current) {
-          setIsLoginOpen(true);
+          const dismissed = await AsyncStorage.getItem(GUEST_DISMISSED_KEY).catch(() => null);
+          if (active && dismissed !== '1' && !hasDismissedLoginRef.current) {
+            setIsLoginOpen(true);
+          }
         }
         return;
       }
@@ -336,7 +346,7 @@ export default function App() {
       hasDismissedLoginRef.current = false;
       await signOutUser();
       resetToEmptyState();
-      await AsyncStorage.removeItem(GUEST_STORAGE_KEY);
+      await AsyncStorage.multiRemove([GUEST_STORAGE_KEY, GUEST_DISMISSED_KEY]);
     } catch (err) {
       console.error('Sign out failed', err);
     }
@@ -465,6 +475,7 @@ export default function App() {
         visible={isLoginOpen}
         onClose={() => {
           hasDismissedLoginRef.current = true;
+          AsyncStorage.setItem(GUEST_DISMISSED_KEY, '1').catch(() => { });
           setIsLoginOpen(false);
         }}
       />

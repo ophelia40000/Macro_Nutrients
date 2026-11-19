@@ -17,6 +17,9 @@ import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import FullscreenPhotoModal from '../components/modals/FullscreenPhotoModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
+import FormErrorBanner from '../components/FormErrorBanner';
+import useModalEscape from '../hooks/useModalEscape';
+import { isValidImageUrl, parseNumericInput } from '../utils/validation';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -120,12 +123,16 @@ export default function CameraScreen({
   const [isUrlModalOpen, setIsUrlModalOpen] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
   const [inputWeight, setInputWeight] = useState(currentWeight.toString());
+  const [urlErrorMsg, setUrlErrorMsg] = useState('');
   const [isCaptureSheetOpen, setIsCaptureSheetOpen] = useState(false);
   const [selectedPhotoIds, setSelectedPhotoIds] = useState([]);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [noticeState, setNoticeState] = useState(null);
+  const [brokenPhotoIds, setBrokenPhotoIds] = useState({});
   const [galleryWidth, setGalleryWidth] = useState(0);
   const { width: windowWidth } = useWindowDimensions();
+
+  useModalEscape(isUrlModalOpen, () => setIsUrlModalOpen(false));
 
   const availableGalleryWidth =
     galleryWidth > 0
@@ -250,8 +257,23 @@ export default function CameraScreen({
   };
 
   const handleSaveManualUrl = () => {
-    if (!manualUrl.trim()) return;
-    addPhotoEntry(manualUrl.trim(), inputWeight);
+    const trimmedUrl = manualUrl.trim();
+    if (!isValidImageUrl(trimmedUrl)) {
+      setUrlErrorMsg('Enter a valid http:// or https:// image URL.');
+      return;
+    }
+    const weightRes = parseNumericInput(inputWeight, {
+      allowEmpty: true,
+      emptyValue: currentWeight || 70,
+      min: 0.1,
+      allowZero: false,
+    });
+    if (!weightRes.valid) {
+      setUrlErrorMsg('Enter a valid positive body weight in kg.');
+      return;
+    }
+    setUrlErrorMsg('');
+    addPhotoEntry(trimmedUrl, weightRes.value);
     setManualUrl('');
     setIsUrlModalOpen(false);
   };
@@ -525,10 +547,31 @@ export default function CameraScreen({
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Physique Gallery</Text>
-          <View style={styles.countBadge}>
-            <Text style={styles.countBadgeText}>
-              {displayPhotos.length} {displayPhotos.length === 1 ? 'photo' : 'photos'}
-            </Text>
+          <View style={styles.galleryHeaderActions}>
+            {displayPhotos.length > 0 && (
+              <TouchableOpacity
+                style={[styles.selectModeBtn, isSelectionMode && styles.selectModeBtnActive]}
+                activeOpacity={0.8}
+                onPress={() => {
+                  if (isSelectionMode) {
+                    clearSelection();
+                  } else {
+                    setSelectedPhotoIds([displayPhotos[0].id]);
+                  }
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={isSelectionMode ? 'Done selecting photos' : 'Select photos'}
+              >
+                <Text style={[styles.selectModeBtnText, isSelectionMode && styles.selectModeBtnTextActive]}>
+                  {isSelectionMode ? 'Done' : 'Select'}
+                </Text>
+              </TouchableOpacity>
+            )}
+            <View style={styles.countBadge}>
+              <Text style={styles.countBadgeText}>
+                {displayPhotos.length} {displayPhotos.length === 1 ? 'photo' : 'photos'}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -584,7 +627,21 @@ export default function CameraScreen({
                   }
                   accessibilityRole="button"
                 >
-                  <Image source={imgSrc} style={styles.photoImg} pointerEvents="none" />
+                  {brokenPhotoIds[photo.id] || !imgSrc ? (
+                    <View style={styles.brokenPhotoFallback}>
+                      <Feather name="image" size={20} color="#d6d3d1" />
+                      <Text style={styles.brokenPhotoText}>Image unavailable</Text>
+                    </View>
+                  ) : (
+                    <Image
+                      source={imgSrc}
+                      style={styles.photoImg}
+                      pointerEvents="none"
+                      onError={() =>
+                        setBrokenPhotoIds((prev) => ({ ...prev, [photo.id]: true }))
+                      }
+                    />
+                  )}
                   {isSelected && <View style={styles.photoSelectedTint} pointerEvents="none" />}
                   <View style={styles.photoWeightBadge}>
                     <Text style={styles.photoWeightText}>{photo.weight} kg</Text>
@@ -636,9 +693,21 @@ export default function CameraScreen({
         onClose={() => setIsFullscreenOpen(false)}
         photos={displayPhotos}
         photo={selectedPhoto}
+        onDeletePhoto={(photoToDelete) => {
+          setIsFullscreenOpen(false);
+          if (photoToDelete?.id) {
+            setSelectedPhotoIds([photoToDelete.id]);
+            setIsDeleteConfirmOpen(true);
+          }
+        }}
       />
 
-      <Modal visible={isUrlModalOpen} animationType="fade" transparent>
+      <Modal
+        visible={isUrlModalOpen}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setIsUrlModalOpen(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.dialogBox}>
             <Text style={styles.dialogTitle}>Add Progress Photo</Text>
@@ -651,10 +720,11 @@ export default function CameraScreen({
               <TextInput
                 style={styles.input}
                 value={manualUrl}
-                onChangeText={setManualUrl}
+                onChangeText={(text) => { setManualUrl(text); setUrlErrorMsg(''); }}
                 placeholder="https://images.unsplash.com/photo-progress.jpg"
                 placeholderTextColor={tokens.ashGray}
                 autoCapitalize="none"
+                accessibilityLabel="Progress photo image URL"
               />
             </View>
 
@@ -663,19 +733,23 @@ export default function CameraScreen({
               <TextInput
                 style={styles.input}
                 value={inputWeight}
-                onChangeText={setInputWeight}
+                onChangeText={(text) => { setInputWeight(text); setUrlErrorMsg(''); }}
                 placeholder="Weight"
                 placeholderTextColor={tokens.ashGray}
                 keyboardType="numeric"
+                accessibilityLabel="Body weight at capture in kg"
               />
               <Text style={styles.unitSuffix}>kg</Text>
             </View>
 
+            <FormErrorBanner message={urlErrorMsg} style={{ marginBottom: 0 }} />
+
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.btnGhost}
-                onPress={() => setIsUrlModalOpen(false)}
+                onPress={() => { setUrlErrorMsg(''); setIsUrlModalOpen(false); }}
                 accessibilityRole="button"
+                accessibilityLabel="Cancel adding photo URL"
               >
                 <Text style={styles.btnGhostText}>Cancel</Text>
               </TouchableOpacity>
@@ -683,6 +757,7 @@ export default function CameraScreen({
                 style={styles.btnPrimary}
                 onPress={handleSaveManualUrl}
                 accessibilityRole="button"
+                accessibilityLabel="Add Photo"
               >
                 <Text style={styles.btnPrimaryText}>Add Photo</Text>
               </TouchableOpacity>
@@ -713,6 +788,7 @@ export default function CameraScreen({
             icon: 'link',
             onPress: () => {
               setInputWeight(currentWeight.toString());
+              setUrlErrorMsg('');
               setIsUrlModalOpen(true);
             },
           },
@@ -854,6 +930,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
+  galleryHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  selectModeBtn: {
+    minHeight: 44,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: tokens.radiusPill,
+    backgroundColor: tokens.pureWhite,
+    borderWidth: 1,
+    borderColor: tokens.stoneBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectModeBtnActive: {
+    backgroundColor: '#e0f2fe',
+    borderColor: 'rgba(3, 105, 161, 0.3)',
+  },
+  selectModeBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: tokens.inkBlack,
+  },
+  selectModeBtnTextActive: {
+    color: tokens.cyanEdge,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
@@ -910,13 +1014,15 @@ const styles = StyleSheet.create({
   emptyAddBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
+    minHeight: 44,
     backgroundColor: tokens.stoneCanvas,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
     borderRadius: tokens.radiusPill,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
     marginTop: 8,
   },
   emptyAddBtnText: {
@@ -949,6 +1055,19 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+  },
+  brokenPhotoFallback: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 8,
+  },
+  brokenPhotoText: {
+    fontSize: 11,
+    color: '#d6d3d1',
+    textAlign: 'center',
   },
   photoSelectedTint: {
     ...StyleSheet.absoluteFillObject,
@@ -1071,9 +1190,11 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radiusInput,
     paddingHorizontal: 12,
     gap: 8,
+    minWidth: 0,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     height: 42,
     fontSize: 13,
     color: tokens.inkBlack,
@@ -1082,6 +1203,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: tokens.warmGray,
+    flexShrink: 0,
   },
   modalActions: {
     flexDirection: 'row',
@@ -1090,7 +1212,9 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   btnGhost: {
-    paddingHorizontal: 14,
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: tokens.radiusInput,
   },
@@ -1100,8 +1224,10 @@ const styles = StyleSheet.create({
     color: tokens.warmGray,
   },
   btnPrimary: {
+    minHeight: 44,
+    justifyContent: 'center',
     backgroundColor: tokens.cyanEdge,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingVertical: 9,
     borderRadius: tokens.radiusInput,
   },

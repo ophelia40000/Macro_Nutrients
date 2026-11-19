@@ -22,11 +22,11 @@ const tokens = {
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
   soot: '#1c1917',
-  skyWash: '#c1e1f7',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
-  surplusAlert: '#e54d2e',
-  surplusWash: 'rgba(229, 77, 46, 0.12)',
+  skyWash: '#e0f2fe',
+  cyanSignal: '#0284c7',
+  cyanEdge: '#0369a1',
+  surplusAlert: '#c8371d',
+  surplusWash: 'rgba(200, 55, 29, 0.10)',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -131,6 +131,7 @@ export default function DashboardScreen({
       </View>
 
       <ScrollView
+        style={styles.scrollArea}
         contentContainerStyle={styles.contentScrollable}
         showsVerticalScrollIndicator={false}
       >
@@ -154,7 +155,7 @@ export default function DashboardScreen({
                 <Text style={styles.sectionHeaderTitle}>Energy Budget</Text>
                 <View style={styles.highlightBadge}>
                   <Text style={styles.highlightBadgeText}>
-                    {isSurplus ? 'surplus detected' : 'simple & actionable'}
+                    {isSurplus ? 'surplus detected' : 'within budget'}
                   </Text>
                 </View>
               </View>
@@ -408,16 +409,18 @@ export default function DashboardScreen({
         </TouchableOpacity>
       </ScrollView>
 
-      <TouchableOpacity
-        style={styles.pillFab}
-        activeOpacity={0.88}
-        onPress={() => setIsAdjustGoalsOpen(true)}
-        accessibilityLabel="Adjust Nutrition and Calorie Goals"
-        accessibilityRole="button"
-      >
-        <Feather name="sliders" size={17} color="#ffffff" />
-        <Text style={styles.pillFabText}>Adjust Goals</Text>
-      </TouchableOpacity>
+      <View style={styles.footerActionRow}>
+        <TouchableOpacity
+          style={styles.pillFab}
+          activeOpacity={0.88}
+          onPress={() => setIsAdjustGoalsOpen(true)}
+          accessibilityLabel="Adjust Nutrition and Calorie Goals"
+          accessibilityRole="button"
+        >
+          <Feather name="sliders" size={17} color="#ffffff" />
+          <Text style={styles.pillFabText}>Adjust Goals</Text>
+        </TouchableOpacity>
+      </View>
 
       <AdjustGoalsModal
         visible={isAdjustGoalsOpen}
@@ -541,12 +544,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    height: 32,
-    paddingHorizontal: 10,
-    borderRadius: 16,
+    minHeight: 44,
+    paddingHorizontal: 14,
+    borderRadius: 22,
     backgroundColor: '#e0f2fe',
     borderWidth: 1,
-    borderColor: 'rgba(59, 166, 241, 0.28)',
+    borderColor: 'rgba(3, 105, 161, 0.28)',
   },
   signInPillText: {
     fontSize: 12,
@@ -554,9 +557,9 @@ const styles = StyleSheet.create({
     color: '#0369a1',
   },
   profileBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: tokens.pureWhite,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
@@ -577,26 +580,28 @@ const styles = StyleSheet.create({
   profileLetter: {
     color: tokens.cyanEdge,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  scrollArea: {
+    flex: 1,
+    minHeight: 0,
   },
   contentScrollable: {
-    flexGrow: 1,
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 68,
-    gap: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
+    gap: 8,
   },
   cardSlot: {
-    flexGrow: 1,
+    width: '100%',
   },
   cardBase: {
-    flex: 1,
     justifyContent: 'space-between',
     backgroundColor: tokens.pureWhite,
     borderRadius: tokens.radiusFeatureCard,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
-    padding: 16,
+    padding: 14,
     ...Platform.select({
       ios: {
         shadowColor: '#000000',
@@ -610,7 +615,7 @@ const styles = StyleSheet.create({
     }),
   },
   heroCalCard: {
-    padding: 16,
+    padding: 14,
   },
   heroCalCardSurplus: {
     borderColor: tokens.surplusAlert,
@@ -619,7 +624,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 6,
     flexWrap: 'wrap',
     gap: 8,
   },
@@ -683,10 +688,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 8,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   calorieBigValue: {
-    fontSize: 38,
+    fontSize: 34,
     fontWeight: '400',
     color: tokens.inkBlack,
     letterSpacing: -1,
@@ -744,12 +749,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   macroCard: {
-    padding: 15,
+    padding: 13,
     borderRadius: tokens.radiusCard,
   },
   shareTrackWrapper: {
-    marginBottom: 10,
-    paddingBottom: 8,
+    marginBottom: 8,
+    paddingBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: tokens.stoneBorder,
   },
@@ -835,10 +840,10 @@ const styles = StyleSheet.create({
   macroSeparator: {
     height: 1,
     backgroundColor: tokens.stoneBorder,
-    marginVertical: 7,
+    marginVertical: 5,
   },
   exerciseCard: {
-    padding: 16,
+    padding: 14,
     borderRadius: tokens.radiusCard,
   },
   exerciseLastTrack: {
@@ -874,10 +879,17 @@ const styles = StyleSheet.create({
     color: tokens.warmGray,
     fontWeight: '400',
   },
+  footerActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: 16,
+    paddingTop: 6,
+    paddingBottom: 8,
+    backgroundColor: tokens.stoneCanvas,
+    borderTopWidth: 1,
+    borderTopColor: tokens.stoneBorder,
+  },
   pillFab: {
-    position: 'absolute',
-    bottom: 14,
-    right: 16,
     minHeight: 44,
     backgroundColor: '#0369a1',
     borderRadius: tokens.radiusPill,
@@ -888,7 +900,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    zIndex: 30,
     ...Platform.select({
       ios: {
         shadowColor: '#0369a1',

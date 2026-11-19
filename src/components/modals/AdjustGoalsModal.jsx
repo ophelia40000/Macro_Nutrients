@@ -11,6 +11,9 @@ import {
   Platform,
 } from 'react-native';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
+import FormErrorBanner from '../FormErrorBanner';
+import { parseNumericInput } from '../../utils/validation';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -20,8 +23,8 @@ const tokens = {
   ashGray: '#a8a29e',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -34,6 +37,9 @@ export default function AdjustGoalsModal({ visible, onClose, goals, onSave }) {
   const [carbs, setCarbs] = useState('');
   const [prot, setProt] = useState('');
   const [fat, setFat] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  useModalEscape(visible, onClose);
 
   useEffect(() => {
     if (goals) {
@@ -41,29 +47,45 @@ export default function AdjustGoalsModal({ visible, onClose, goals, onSave }) {
       setCarbs(goals.carbs ? goals.carbs.toString() : '250');
       setProt(goals.protein ? goals.protein.toString() : '150');
       setFat(goals.fat ? goals.fat.toString() : '70');
+      setErrorMsg('');
     }
   }, [goals, visible]);
 
-  const pNum = parseFloat(prot) || 0;
-  const cNum = parseFloat(carbs) || 0;
-  const fNum = parseFloat(fat) || 0;
+  const pRes = parseNumericInput(prot, { allowEmpty: true, emptyValue: 0, min: 0 });
+  const cRes = parseNumericInput(carbs, { allowEmpty: true, emptyValue: 0, min: 0 });
+  const fRes = parseNumericInput(fat, { allowEmpty: true, emptyValue: 0, min: 0 });
+  const calRes = parseNumericInput(cal, { allowEmpty: false, min: 1, allowZero: false });
+
+  const pNum = pRes.valid ? pRes.value : 0;
+  const cNum = cRes.valid ? cRes.value : 0;
+  const fNum = fRes.valid ? fRes.value : 0;
   const calculatedSum = Math.round(pNum * 4 + cNum * 4 + fNum * 9);
-  const targetCalNum = parseFloat(cal) || 0;
+  const targetCalNum = calRes.valid ? calRes.value : 0;
   const variance = calculatedSum - targetCalNum;
 
   const handleSave = () => {
+    if (!calRes.valid) {
+      setErrorMsg('Enter a valid daily calorie target greater than 0.');
+      return;
+    }
+    if (!pRes.valid || !cRes.valid || !fRes.valid) {
+      setErrorMsg('Protein, carbs, and fats must be 0 or positive numbers.');
+      return;
+    }
+
+    setErrorMsg('');
     onSave({
       ...goals,
-      calories: parseFloat(cal) || goals.calories,
-      carbs: parseFloat(carbs) || goals.carbs,
-      protein: parseFloat(prot) || goals.protein,
-      fat: parseFloat(fat) || goals.fat,
+      calories: calRes.value,
+      carbs: cRes.value,
+      protein: pRes.value,
+      fat: fRes.value,
     });
     onClose();
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -78,71 +100,85 @@ export default function AdjustGoalsModal({ visible, onClose, goals, onSave }) {
               </View>
 
               <ScrollView
-                style={{ maxHeight: 340 }}
+                style={{ maxHeight: 380 }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
+                <Text style={styles.fieldLabel}>Daily Calories</Text>
                 <View style={styles.inputGroup}>
-                  <Ionicons name="flame-outline" size={16} color={tokens.ashGray} />
+                  <Ionicons name="flame-outline" size={16} color={tokens.warmGray} />
                   <TextInput
                     style={styles.input}
                     value={cal}
-                    onChangeText={setCal}
+                    onChangeText={(v) => { setCal(v); setErrorMsg(''); }}
                     placeholder="Total Calories"
                     placeholderTextColor={tokens.ashGray}
                     keyboardType="numeric"
+                    accessibilityLabel="Daily Calories Input"
                   />
                   <Text style={styles.unitSuffix}>kcal</Text>
                 </View>
 
                 <View style={styles.inputRow}>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <MaterialCommunityIcons
-                      name="food-drumstick"
-                      size={16}
-                      color={tokens.cyanEdge}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      value={prot}
-                      onChangeText={setProt}
-                      placeholder="Protein"
-                      placeholderTextColor={tokens.ashGray}
-                      keyboardType="numeric"
-                    />
-                    <Text style={styles.unitSuffix}>g</Text>
+                  <View style={styles.inputCol}>
+                    <Text style={styles.fieldLabel}>Protein</Text>
+                    <View style={[styles.inputGroup, styles.inputGroupFlex]}>
+                      <MaterialCommunityIcons
+                        name="food-drumstick"
+                        size={16}
+                        color={tokens.cyanEdge}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        value={prot}
+                        onChangeText={(v) => { setProt(v); setErrorMsg(''); }}
+                        placeholder="Protein"
+                        placeholderTextColor={tokens.ashGray}
+                        keyboardType="numeric"
+                        accessibilityLabel="Protein Target Input"
+                      />
+                      <Text style={styles.unitSuffix}>g</Text>
+                    </View>
                   </View>
 
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <MaterialCommunityIcons
-                      name="bread-slice"
-                      size={16}
-                      color={tokens.warmGray}
-                    />
-                    <TextInput
-                      style={styles.input}
-                      value={carbs}
-                      onChangeText={setCarbs}
-                      placeholder="Carbs"
-                      placeholderTextColor={tokens.ashGray}
-                      keyboardType="numeric"
-                    />
-                    <Text style={styles.unitSuffix}>g</Text>
+                  <View style={styles.inputCol}>
+                    <Text style={styles.fieldLabel}>Carbs</Text>
+                    <View style={[styles.inputGroup, styles.inputGroupFlex]}>
+                      <MaterialCommunityIcons
+                        name="bread-slice"
+                        size={16}
+                        color={tokens.warmGray}
+                      />
+                      <TextInput
+                        style={styles.input}
+                        value={carbs}
+                        onChangeText={(v) => { setCarbs(v); setErrorMsg(''); }}
+                        placeholder="Carbs"
+                        placeholderTextColor={tokens.ashGray}
+                        keyboardType="numeric"
+                        accessibilityLabel="Carbohydrates Target Input"
+                      />
+                      <Text style={styles.unitSuffix}>g</Text>
+                    </View>
                   </View>
                 </View>
 
+                <Text style={styles.fieldLabel}>Healthy Fats</Text>
                 <View style={styles.inputGroup}>
-                  <Ionicons name="water-outline" size={16} color={tokens.ashGray} />
+                  <Ionicons name="water-outline" size={16} color={tokens.warmGray} />
                   <TextInput
                     style={styles.input}
                     value={fat}
-                    onChangeText={setFat}
+                    onChangeText={(v) => { setFat(v); setErrorMsg(''); }}
                     placeholder="Healthy Fats"
                     placeholderTextColor={tokens.ashGray}
                     keyboardType="numeric"
+                    accessibilityLabel="Healthy Fats Target Input"
                   />
                   <Text style={styles.unitSuffix}>g</Text>
                 </View>
+
+                <FormErrorBanner message={errorMsg} />
 
                 <View style={styles.telemetryCard}>
                   <View style={styles.telemetryRow}>
@@ -241,6 +277,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: tokens.warmGray,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 5,
+  },
+  inputCol: {
+    flex: 1,
+    minWidth: 0,
+  },
   inputGroup: {
     backgroundColor: tokens.pureWhite,
     borderRadius: tokens.radiusInput,
@@ -252,9 +300,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
+    minWidth: 0,
+  },
+  inputGroupFlex: {
+    flex: 1,
+    minWidth: 0,
   },
   input: {
     flex: 1,
+    minWidth: 0,
     color: tokens.inkBlack,
     fontSize: 14,
     fontWeight: '400',
@@ -262,7 +316,8 @@ const styles = StyleSheet.create({
   unitSuffix: {
     color: tokens.warmGray,
     fontSize: 12,
-    fontWeight: '400',
+    fontWeight: '500',
+    flexShrink: 0,
   },
   inputRow: {
     flexDirection: 'row',
@@ -293,7 +348,7 @@ const styles = StyleSheet.create({
   },
   telemetryHint: {
     fontSize: 11,
-    color: tokens.ashGray,
+    color: tokens.warmGray,
     marginTop: 4,
   },
   actionRow: {
@@ -307,6 +362,8 @@ const styles = StyleSheet.create({
     borderTopColor: tokens.stoneCanvas,
   },
   btnSecondary: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: tokens.radiusPill,
@@ -317,14 +374,14 @@ const styles = StyleSheet.create({
   btnSecondaryText: {
     color: tokens.inkBlack,
     fontSize: 13,
-    fontWeight: '400',
+    fontWeight: '500',
   },
   btnPrimary: {
     backgroundColor: tokens.cyanSignal,
     borderRadius: tokens.radiusPill,
     borderWidth: 1,
     borderColor: tokens.cyanEdge,
-    height: 40,
+    minHeight: 44,
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',

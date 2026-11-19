@@ -427,82 +427,99 @@ export default function ExerciseScreen({
                       const displayExerciseName = capitalizeFirstLetter(ex.name);
 
                       return (
-                        <TouchableOpacity
-                          key={ex.id}
-                          style={styles.workoutCard}
-                          activeOpacity={0.86}
-                          onPress={() => handleOpenSets(ex)}
-                          onLongPress={() => handleDeleteExercise(ex)}
-                          delayLongPress={500}
-                          accessibilityLabel={`Open ${displayExerciseName} sets`}
-                          accessibilityRole="button"
-                        >
+                        <View key={ex.id} style={styles.workoutCard}>
                           <View style={styles.workoutTopBand}>
-                            <View style={styles.workoutLeft}>
-                              <Text style={styles.workoutName} numberOfLines={1}>
-                                {displayExerciseName}
-                              </Text>
-                              <View style={styles.workoutMetaLine}>
-                                <Text
-                                  style={[
-                                    styles.workoutTimeText,
-                                    isToday && styles.workoutTimeToday,
-                                  ]}
-                                >
-                                  {timeStr}
+                            <TouchableOpacity
+                              style={styles.workoutMainPress}
+                              activeOpacity={0.86}
+                              onPress={() => handleOpenSets(ex)}
+                              onLongPress={() => handleDeleteExercise(ex)}
+                              delayLongPress={500}
+                              accessibilityLabel={`Open ${displayExerciseName} sets`}
+                              accessibilityRole="button"
+                            >
+                              <View style={styles.workoutLeft}>
+                                <Text style={styles.workoutName} numberOfLines={1}>
+                                  {displayExerciseName}
                                 </Text>
-                                {lastEntry && (
-                                  <Text style={styles.workoutSummaryDot}>
-                                    {' '}
-                                    · {sets.length}{' '}
-                                    {sets.length === 1 ? 'set' : 'sets'} ·{' '}
-                                    {totalReps} reps
-                                  </Text>
-                                )}
-                              </View>
-                            </View>
-
-                            {lastEntry ? (
-                              <View style={styles.loadBadgeGroup}>
-                                {diff !== null && diff !== 0 && (
-                                  <View
+                                <View style={styles.workoutMetaLine}>
+                                  <Text
                                     style={[
-                                      styles.diffTag,
-                                      diff > 0
-                                        ? styles.diffPositive
-                                        : styles.diffNegative,
+                                      styles.workoutTimeText,
+                                      isToday && styles.workoutTimeToday,
                                     ]}
                                   >
-                                    <Text
-                                      style={[
-                                        styles.diffText,
-                                        diff > 0
-                                          ? styles.diffPositiveText
-                                          : styles.diffNegativeText,
-                                      ]}
-                                    >
-                                      {diff > 0 ? `+${diff}` : `${diff}`}kg
-                                    </Text>
-                                  </View>
-                                )}
-                                <View style={styles.loadTile}>
-                                  <Text style={styles.loadTileValue}>
-                                    {maxWeight}
+                                    {timeStr}
                                   </Text>
-                                  <Text style={styles.loadTileUnit}>kg</Text>
+                                  {lastEntry && (
+                                    <Text style={styles.workoutSummaryDot}>
+                                      {' '}
+                                      · {sets.length}{' '}
+                                      {sets.length === 1 ? 'set' : 'sets'} ·{' '}
+                                      {totalReps} reps
+                                    </Text>
+                                  )}
                                 </View>
                               </View>
-                            ) : (
-                              <View style={styles.emptyLogTag}>
-                                <Text style={styles.emptyLogTagText}>
-                                  Log sets
-                                </Text>
-                              </View>
-                            )}
+
+                              {lastEntry ? (
+                                <View style={styles.loadBadgeGroup}>
+                                  {diff !== null && diff !== 0 && (
+                                    <View
+                                      style={[
+                                        styles.diffTag,
+                                        diff > 0
+                                          ? styles.diffPositive
+                                          : styles.diffNegative,
+                                      ]}
+                                    >
+                                      <Text
+                                        style={[
+                                          styles.diffText,
+                                          diff > 0
+                                            ? styles.diffPositiveText
+                                            : styles.diffNegativeText,
+                                        ]}
+                                      >
+                                        {diff > 0 ? `+${diff}` : `${diff}`}kg
+                                      </Text>
+                                    </View>
+                                  )}
+                                  <View style={styles.loadTile}>
+                                    <Text style={styles.loadTileValue}>
+                                      {maxWeight}
+                                    </Text>
+                                    <Text style={styles.loadTileUnit}>kg</Text>
+                                  </View>
+                                </View>
+                              ) : (
+                                <View style={styles.emptyLogTag}>
+                                  <Text style={styles.emptyLogTagText}>
+                                    Log sets
+                                  </Text>
+                                </View>
+                              )}
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                              style={styles.workoutDeleteBtn}
+                              activeOpacity={0.8}
+                              onPress={() => handleDeleteExercise(ex)}
+                              accessibilityLabel={`Delete ${displayExerciseName}`}
+                              accessibilityRole="button"
+                            >
+                              <Feather name="trash-2" size={15} color={tokens.warmGray} />
+                            </TouchableOpacity>
                           </View>
 
                           {sets.length > 0 && (
-                            <View style={styles.setsStrip}>
+                            <TouchableOpacity
+                              style={styles.setsStrip}
+                              activeOpacity={0.86}
+                              onPress={() => handleOpenSets(ex)}
+                              accessibilityLabel={`Edit ${displayExerciseName} sets`}
+                              accessibilityRole="button"
+                            >
                               {sets.map((s, idx) => (
                                 <View key={idx} style={styles.setChip}>
                                   <Text style={styles.setChipText}>
@@ -514,9 +531,9 @@ export default function ExerciseScreen({
                                   </Text>
                                 </View>
                               ))}
-                            </View>
+                            </TouchableOpacity>
                           )}
-                        </TouchableOpacity>
+                        </View>
                       );
                     })}
                   </View>
@@ -932,13 +949,33 @@ const styles = StyleSheet.create({
     borderRadius: tokens.radiusCard,
     padding: 14,
     gap: 11,
-    ...interactiveWebCursor,
   },
   workoutTopBand: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 10,
+  },
+  workoutMainPress: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 12,
+    ...interactiveWebCursor,
+  },
+  workoutDeleteBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: tokens.stoneCanvas,
+    borderWidth: 1,
+    borderColor: tokens.stoneBorder,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+    ...interactiveWebCursor,
   },
   workoutLeft: {
     flex: 1,

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { signInWithGoogle } from '../../services/firebase';
+import useModalEscape from '../../hooks/useModalEscape';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -20,8 +21,8 @@ const tokens = {
   ashGray: '#a8a29e',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -32,6 +33,8 @@ const tokens = {
 export default function LoginModal({ visible, onClose, onLogin }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useModalEscape(visible, onClose);
 
   const handleGooglePress = async () => {
     if (isLoading) return;

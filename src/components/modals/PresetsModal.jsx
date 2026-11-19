@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import useModalEscape from '../../hooks/useModalEscape';
 
 const tokens = {
   stoneCanvas: '#fafaf9',
@@ -20,10 +21,10 @@ const tokens = {
   ashGray: '#a8a29e',
   warmGray: '#78716c',
   inkBlack: '#0c0a09',
-  cyanSignal: '#3ba6f1',
-  cyanEdge: '#3398e1',
-  negativeRed: '#e54d2e',
-  negativeWash: 'rgba(229, 77, 46, 0.08)',
+  cyanSignal: '#0369a1',
+  cyanEdge: '#0369a1',
+  negativeRed: '#c8371d',
+  negativeWash: 'rgba(200, 55, 29, 0.08)',
 
   radiusCard: 10,
   radiusFeatureCard: 16,
@@ -40,12 +41,14 @@ export default function PresetsModal({
 }) {
   const [search, setSearch] = useState('');
 
+  useModalEscape(visible, onClose);
+
   const filtered = presets.filter((p) =>
     (p.name || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
@@ -98,7 +101,11 @@ export default function PresetsModal({
               >
                 {filtered.length === 0 ? (
                   <View style={styles.emptyState}>
-                    <Text style={styles.emptyText}>No presets match your search.</Text>
+                    <Text style={styles.emptyText}>
+                      {presets.length === 0
+                        ? 'No nutrition presets saved yet. Tap + New to create one.'
+                        : 'No presets match your search.'}
+                    </Text>
                   </View>
                 ) : (
                   filtered.map((p, idx) => {
@@ -225,8 +232,9 @@ const styles = StyleSheet.create({
   btnAddPreset: {
     backgroundColor: tokens.cyanSignal,
     borderRadius: tokens.radiusPill,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    minHeight: 40,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -302,9 +310,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: tokens.stoneCanvas,
     borderWidth: 1,
     borderColor: tokens.stoneBorder,
